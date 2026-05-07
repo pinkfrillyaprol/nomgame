@@ -1,125 +1,606 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nom Knight</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #game-container { width: 100vw; height: 100vh; position: relative; }
-        canvas { display: block; }
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 6px; height: 6px;
-            background: rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 10;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        #instructions { position: absolute; top: 14px; left: 14px; color: rgba(255,255,255,0.65); font-size: 11px; line-height: 1.7; pointer-events: none; text-shadow: 0 1px 4px rgba(0,0,0,0.6); z-index: 10; }
-        #instructions kbd { background: rgba(255,255,255,0.12); padding: 2px 5px; border-radius: 3px; font-family: inherit; border: 1px solid rgba(255,255,255,0.18); }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 11px;
+            line-height: 1.7;
+            pointer-events: none;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        #instructions kbd {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
 
         /* HUD */
-        #health-bar-container { position: absolute; top: 14px; left: 14px; width: 220px; display: none; pointer-events: none; z-index: 10; }
-        #health-bar-container.visible { display: block; }
-        .bar-label { color: #ff6b6b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-        .bg-bar { width: 100%; height: 14px; background: rgba(0,0,0,0.45); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
-        .fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #c0392b, #e74c3c); transition: width 0.3s ease; }
-        #health-text { color: rgba(255,255,255,0.85); font-size: 11px; margin-top: 3px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-        #level-text { color: #6bcb77; font-size: 11px; margin-top: 4px; font-weight: bold; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+        #health-bar-container {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 220px;
+            display: none;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #health-bar-container.visible {
+            display: block;
+        }
+
+        .bar-label {
+            color: #ff6b6b;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        .bg-bar {
+            width: 100%;
+            height: 14px;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .fill-hp {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
+            transition: width 0.3s ease;
+        }
+
+        #health-text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11px;
+            margin-top: 3px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        #level-text {
+            color: #6bcb77;
+            font-size: 11px;
+            margin-top: 4px;
+            font-weight: bold;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        .bar-label.nom-label {
+            color: #ff88a0;
+            margin-top: 6px;
+        }
+
+        .fill-nom {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #e05080, #ff88a0);
+            transition: width 0.3s ease;
+        }
 
         /* POKEMON-STYLE COMBAT UI */
-        #pkmn-ui { position: absolute; inset: 0; pointer-events: none; display: none; z-index: 50; font-family: 'Courier New', Courier, monospace; }
-        #pkmn-ui.active { display: block; pointer-events: auto; }
-        
-        .pkmn-box { background: #f8f8d8; border: 4px solid #506860; border-radius: 8px; padding: 12px 18px; color: #333; font-weight: bold; font-size: 20px; box-shadow: 4px 4px 0px rgba(0,0,0,0.25); }
-        #pkmn-enemy-box { position: absolute; top: 50px; left: 50px; width: 340px; border-bottom-right-radius: 20px; transition: all 0.3s ease; }
-        #pkmn-player-box { position: absolute; bottom: 180px; right: 50px; width: 360px; border-top-left-radius: 20px; }
-        
-        .pkmn-title { margin-bottom: 8px; font-size: 22px; text-transform: capitalize; }
-        .pkmn-bar-wrap { display: flex; align-items: center; margin-top: 8px; }
-        .pkmn-bar-label { font-size: 14px; width: 45px; color: #c08020; text-shadow: 1px 1px 0px #fff; }
-        .pkmn-bar-bg { flex: 1; height: 14px; background: #404040; border-radius: 7px; border: 2px solid #e0e0e0; overflow: hidden; position: relative; }
-        .pkmn-bar-hp { height: 100%; background: #48c880; transition: width 0.3s; }
-        .pkmn-bar-nom { height: 100%; background: #ff88a0; transition: width 0.3s, box-shadow 0.3s; }
-        .pkmn-hp-text { font-size: 14px; text-align: right; margin-top: 4px; color: #555; }
+        #pkmn-ui {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+            z-index: 50;
+            font-family: 'Courier New', Courier, monospace;
+        }
 
-        #pkmn-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; display: flex; border-top: 4px solid #506860; background: #f8f8f8; }
-        #pkmn-message { flex: 1; padding: 24px 30px; font-size: 26px; color: #333; font-weight: bold; border-right: 4px solid #506860; line-height: 1.4; display: flex; align-items: center; }
-        #pkmn-actions { width: 450px; background: #e0e0e0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; padding: 4px; }
-        .pkmn-btn { background: #f8f8d8; border: 3px solid #506860; border-radius: 6px; font-size: 22px; font-family: inherit; font-weight: bold; cursor: pointer; color: #333; transition: background 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pkmn-btn:hover:not(:disabled) { background: #e8e8c8; }
-        .pkmn-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .pkmn-btn span.cost { font-size: 12px; color: #888; margin-top: 4px; }
+        #pkmn-ui.active {
+            display: block;
+            pointer-events: auto;
+        }
 
-        #spell-menu-overlay { position: absolute; right: 460px; bottom: 10px; background: #f8f8d8; border: 4px solid #506860; border-radius: 8px; padding: 10px; display: none; flex-direction: column; gap: 5px; box-shadow: -4px 4px 0px rgba(0,0,0,0.2); max-height: 250px; overflow-y: auto; }
-        #spell-menu-overlay.open { display: flex; }
+        .pkmn-box {
+            background: #f8f8d8;
+            border: 4px solid #506860;
+            border-radius: 8px;
+            padding: 12px 18px;
+            color: #333;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.25);
+        }
+
+        #pkmn-enemy-box {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 340px;
+            border-bottom-right-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        #pkmn-player-box {
+            position: absolute;
+            bottom: 180px;
+            right: 50px;
+            width: 360px;
+            border-top-left-radius: 20px;
+        }
+
+        .pkmn-title {
+            margin-bottom: 8px;
+            font-size: 22px;
+            text-transform: capitalize;
+        }
+
+        .pkmn-bar-wrap {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .pkmn-bar-label {
+            font-size: 14px;
+            width: 45px;
+            color: #c08020;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .pkmn-bar-bg {
+            flex: 1;
+            height: 14px;
+            background: #404040;
+            border-radius: 7px;
+            border: 2px solid #e0e0e0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pkmn-bar-hp {
+            height: 100%;
+            background: #48c880;
+            transition: width 0.3s;
+        }
+
+        .pkmn-bar-nom {
+            height: 100%;
+            background: #ff88a0;
+            transition: width 0.3s, box-shadow 0.3s;
+        }
+
+        .pkmn-hp-text {
+            font-size: 14px;
+            text-align: right;
+            margin-top: 4px;
+            color: #555;
+        }
+
+        #pkmn-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            display: flex;
+            border-top: 4px solid #506860;
+            background: #f8f8f8;
+        }
+
+        #pkmn-message {
+            flex: 1;
+            padding: 24px 30px;
+            font-size: 26px;
+            color: #333;
+            font-weight: bold;
+            border-right: 4px solid #506860;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+        }
+
+        #pkmn-actions {
+            width: 450px;
+            background: #e0e0e0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 4px;
+            padding: 4px;
+        }
+
+        .pkmn-btn {
+            background: #f8f8d8;
+            border: 3px solid #506860;
+            border-radius: 6px;
+            font-size: 22px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            transition: background 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pkmn-btn:hover:not(:disabled) {
+            background: #e8e8c8;
+        }
+
+        .pkmn-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pkmn-btn span.cost {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        #spell-menu-overlay {
+            position: absolute;
+            right: 460px;
+            bottom: 10px;
+            background: #f8f8d8;
+            border: 4px solid #506860;
+            border-radius: 8px;
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.2);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        #spell-menu-overlay.open {
+            display: flex;
+        }
 
         /* Floating Damage Text */
         .floating-text {
-            position: absolute; font-size: 36px; font-weight: 900;
-            text-shadow: 0 0 8px rgba(0,0,0,1), 2px 2px 0px #000;
-            pointer-events: none; z-index: 1000;
+            position: absolute;
+            font-size: 36px;
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 1), 2px 2px 0px #000;
+            pointer-events: none;
+            z-index: 1000;
             transform: translate(-50%, -50%);
             animation: floatDmg 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
             font-family: 'Courier New', Courier, monospace;
         }
-        .floating-text.damage-enemy { color: #fff; }
-        .floating-text.damage-player { color: #ff4a4a; }
-        .floating-text.heal { color: #4ade80; font-size: 30px; }
-        
+
+        .floating-text.damage-enemy {
+            color: #fff;
+        }
+
+        .floating-text.damage-player {
+            color: #ff4a4a;
+        }
+
+        .floating-text.heal {
+            color: #4ade80;
+            font-size: 30px;
+        }
+
         @keyframes floatDmg {
-            0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
-            20% { transform: translate(-50%, -40px) scale(1.2); opacity: 1; }
-            100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
+            0% {
+                transform: translate(-50%, 0) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(-50%, -40px) scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -80px) scale(1);
+                opacity: 0;
+            }
         }
 
         /* Dialogues & Menus */
-        #menu-overlay { position: absolute; inset: 0; background: rgba(10, 12, 22, 0.82); display: none; align-items: center; justify-content: center; z-index: 60; }
-        #menu-overlay.open { display: flex; pointer-events: auto; }
-        #menu-panel { width: 400px; background: rgba(20, 24, 40, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 24px; color: #fff; text-align: center; }
-        
-        #dialogue-overlay { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; pointer-events: none; padding-bottom: 48px; z-index: 60; }
-        #dialogue-overlay.active { display: flex; pointer-events: auto; }
-        #dialogue-box { width: 720px; background: rgba(12, 16, 32, 0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 22px 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        #dialogue-speaker { color: #fad0c4; font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        #dialogue-text { color: #e8e8f0; font-size: 16px; line-height: 1.6; min-height: 48px; font-style: italic; }
-        
-        #interaction-prompt { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 8px 20px; color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.5px; display: none; z-index: 5; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        #interaction-prompt.active { display: block; animation: slideUp 0.2s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-        
-        #popup-toast { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(20, 24, 40, 0.92); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 10px 20px; color: #6bcb77; font-size: 13px; font-weight: 600; display: none; z-index: 15; pointer-events: none; }
-        #popup-toast.active { display: block; }
-        
-        #objective-toast { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); color: #ff6b6b; font-size: 18px; font-weight: bold; display: none; z-index: 15; text-shadow: 0 2px 4px rgba(0,0,0,0.8); animation: pulseAlert 1.5s infinite; }
-        #objective-toast.active { display: block; }
-        @keyframes pulseAlert { 0% { opacity: 0.7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } 100% { opacity: 0.7; transform: translateX(-50%) scale(1); } }
+        #menu-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 12, 22, 0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+
+        #menu-overlay.open {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        #menu-panel {
+            width: 400px;
+            background: rgba(20, 24, 40, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 24px;
+            color: #fff;
+            text-align: center;
+        }
+
+        #dialogue-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            pointer-events: none;
+            padding-bottom: 48px;
+            z-index: 60;
+        }
+
+        #dialogue-overlay.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        #dialogue-box {
+            width: 720px;
+            background: rgba(12, 16, 32, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 22px 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        #dialogue-speaker {
+            color: #fad0c4;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        #dialogue-text {
+            color: #e8e8f0;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 48px;
+            font-style: italic;
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 4px;
+            padding: 8px 20px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            display: none;
+            z-index: 5;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        #interaction-prompt.active {
+            display: block;
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        #popup-toast {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 24, 40, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            padding: 10px 20px;
+            color: #6bcb77;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        #popup-toast.active {
+            display: block;
+        }
+
+        #objective-toast {
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff6b6b;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+            z-index: 15;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            animation: pulseAlert 1.5s infinite;
+        }
+
+        #objective-toast.active {
+            display: block;
+        }
+
+        @keyframes pulseAlert {
+            0% {
+                opacity: 0.7;
+                transform: translateX(-50%) scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.05);
+            }
+
+            100% {
+                opacity: 0.7;
+                transform: translateX(-50%) scale(1);
+            }
+        }
 
         /* Story Overlays */
-        .story-screen { position: absolute; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: #fff; padding: 40px; text-align: center; }
-        .story-screen.active { display: flex; pointer-events: auto; }
-        .story-text { font-size: 20px; line-height: 1.8; max-width: 800px; margin-bottom: 40px; font-family: 'Georgia', serif; opacity: 0; animation: fadeInText 2s forwards 0.5s; }
-        .story-title { font-size: 48px; font-weight: normal; margin-bottom: 20px; letter-spacing: 4px; font-family: 'Georgia', serif; opacity: 0; animation: fadeInText 2s forwards 0.5s; }
-        .story-btn { background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 10px 30px; font-size: 14px; cursor: pointer; letter-spacing: 2px; transition: 0.3s; text-transform: uppercase; opacity: 0; animation: fadeInText 2s forwards 2s; }
-        .story-btn:hover { background: rgba(255,255,255,0.1); }
-        @keyframes fadeInText { to { opacity: 1; } }
+        .story-screen {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: #fff;
+            padding: 40px;
+            text-align: center;
+        }
 
-        #credits { font-family: 'Georgia', serif; }
-        .credit-line { margin: 15px 0; font-size: 18px; color: #aaa; }
-        .credit-name { font-size: 24px; color: #fff; margin-bottom: 40px; }
+        .story-screen.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        .story-text {
+            font-size: 20px;
+            line-height: 1.8;
+            max-width: 800px;
+            margin-bottom: 40px;
+            font-family: 'Georgia', serif;
+            opacity: 0;
+            animation: fadeInText 2s forwards 0.5s;
+        }
+
+        .story-title {
+            font-size: 48px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            font-family: 'Georgia', serif;
+            opacity: 0;
+            animation: fadeInText 2s forwards 0.5s;
+        }
+
+        .story-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 10px 30px;
+            font-size: 14px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInText 2s forwards 2s;
+        }
+
+        .story-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeInText {
+            to {
+                opacity: 1;
+            }
+        }
+
+        #credits {
+            font-family: 'Georgia', serif;
+        }
+
+        .credit-line {
+            margin: 15px 0;
+            font-size: 18px;
+            color: #aaa;
+        }
+
+        .credit-name {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 40px;
+        }
     </style>
 </head>
+
 <body>
     <div id="game-container">
         <!-- Story Screens -->
         <div id="intro-screen" class="story-screen active">
             <div class="story-title" id="title-text">Nom Knight</div>
             <div class="story-text">
-                A sunny afternoon. A wide sunlit meadow.<br>
-                The two of you sitting together. Peaceful. Warm.<br><br>
-                Without warning, the sky darkens. The Mon descends—a horrifying silhouette.<br>
-                The world goes completely silent for exactly one second.<br>
-                And then he is gone, snatched mid-reach for a sandwich.<br><br>
-                You are alone in the ruined picnic.<br>
+                The Nom Knight and the Princess Nom were ON A DATE!<br>
+                They were both EATING SAMMICHES ON A PICNIC!<br><br>
+                But but then... the Mon shows up and kidnaps the princess<br>
+                The Mon flies away holding a screaming princess.<br>
+                The princess' half eaten sandwich lies on the picnic blanket.<br><br>
+                You must go save the princess.<br>
                 You reach down and pick up your sword.
             </div>
             <button class="story-btn" id="btn-start-game">Begin</button>
@@ -145,11 +626,18 @@
 
         <div id="health-bar-container">
             <div class="bar-label">HP</div>
-            <div class="bg-bar"><div class="fill-hp" id="hud-hp-fill"></div></div>
+            <div class="bg-bar">
+                <div class="fill-hp" id="hud-hp-fill"></div>
+            </div>
             <div id="health-text">100 / 100</div>
+            <div class="bar-label nom-label">NOM</div>
+            <div class="bg-bar">
+                <div class="fill-nom" id="hud-nom-fill"></div>
+            </div>
+            <div id="nom-text" style="color: rgba(255, 255, 255, 0.85); font-size: 11px; margin-top: 3px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">0 / 100</div>
             <div id="level-text">LVL 1 (0 / 50 EXP)</div>
         </div>
-        
+
         <div id="objective-toast">THE CASTLE IS COLLAPSING! RUN UP THE STAIRS!</div>
 
         <div id="pkmn-ui">
@@ -157,7 +645,9 @@
                 <div class="pkmn-title" id="pkmn-enemy-name">Wild Imp</div>
                 <div class="pkmn-bar-wrap">
                     <div class="pkmn-bar-label">HP</div>
-                    <div class="pkmn-bar-bg"><div class="pkmn-bar-hp" id="pkmn-enemy-hp-fill"></div></div>
+                    <div class="pkmn-bar-bg">
+                        <div class="pkmn-bar-hp" id="pkmn-enemy-hp-fill"></div>
+                    </div>
                 </div>
                 <div class="pkmn-hp-text" id="pkmn-enemy-hp-text">30 / 30</div>
             </div>
@@ -165,12 +655,16 @@
                 <div class="pkmn-title" id="pkmn-player-name">Ishani</div>
                 <div class="pkmn-bar-wrap">
                     <div class="pkmn-bar-label">HP</div>
-                    <div class="pkmn-bar-bg"><div class="pkmn-bar-hp" id="pkmn-player-hp-fill"></div></div>
+                    <div class="pkmn-bar-bg">
+                        <div class="pkmn-bar-hp" id="pkmn-player-hp-fill"></div>
+                    </div>
                 </div>
                 <div class="pkmn-hp-text" id="pkmn-player-hp-text">100 / 100</div>
                 <div class="pkmn-bar-wrap">
                     <div class="pkmn-bar-label" style="color:#e05080;">NOM</div>
-                    <div class="pkmn-bar-bg"><div class="pkmn-bar-nom" id="pkmn-player-nom-fill"></div></div>
+                    <div class="pkmn-bar-bg">
+                        <div class="pkmn-bar-nom" id="pkmn-player-nom-fill"></div>
+                    </div>
                 </div>
             </div>
             <div id="pkmn-bottom">
@@ -178,7 +672,8 @@
                 <div id="pkmn-actions">
                     <button class="pkmn-btn" id="btn-attack">FIGHT <span class="cost">Sword Strike</span></button>
                     <button class="pkmn-btn" id="btn-spell">NOM <span class="cost">Magic</span></button>
-                    <button class="pkmn-btn" id="btn-item">ITEMS <span class="cost" id="btn-item-cost">View Bag</span></button>
+                    <button class="pkmn-btn" id="btn-item">ITEMS <span class="cost" id="btn-item-cost">View
+                            Bag</span></button>
                     <button class="pkmn-btn" id="btn-defend">DEFEND <span class="cost">+5 NOM</span></button>
                 </div>
                 <div id="spell-menu-overlay"></div>
@@ -196,10 +691,11 @@
             <div id="dialogue-box">
                 <div id="dialogue-speaker">Speaker</div>
                 <div id="dialogue-text">Text</div>
-                <div style="color: rgba(255,255,255,0.35); font-size: 11px; margin-top: 10px; text-align: right;">Space to continue</div>
+                <div style="color: rgba(255,255,255,0.35); font-size: 11px; margin-top: 10px; text-align: right;">Space
+                    to continue</div>
             </div>
         </div>
-        
+
         <div id="interaction-prompt">Press <kbd>F</kbd> to interact</div>
         <div id="popup-toast"></div>
     </div>
@@ -221,28 +717,27 @@
         // ============================================================
         // CONFIGURATION & GOD MODE
         // ============================================================
-        const GOD_MODE = false; 
+        const GOD_MODE = false;
 
-        const HER_NAME = "Ishani"; 
+        const HER_NAME = "Ishani";
         const YOUR_NAME = "Madhav";
-        const NOM_LANGUAGE_WORD = "ALORRA"; 
+        const NOM_LANGUAGE_WORD = "NOMPA!";
 
         document.getElementById('pkmn-player-name').textContent = HER_NAME;
 
-        const ENDING_DIALOGUE = `"You made it," she whispers, the darkness of the castle completely gone from her eyes. "I knew you would. I never stopped looking at the door."`;
-
+        const ENDING_DIALOGUE = `YOU SAVED THE PRINCESS NOM! CONGRATS AND HUZZAHHHH. IM MEGA PROUD OF YA! THANKS FOR PLAYIN THIS BY THE WAYSIES! The princess said, "THANK WU FOR SAVING MEEEE CAN WE GO BACK TO OUR PICNIC PLEASE!"`
         // ============================================================
         // STATE & MAGIC SYSTEM
         // ============================================================
         const state = {
-            gameState: 'INTRO', 
+            gameState: 'INTRO',
             keys: {}, speed: 6.5, sprintSpeed: 10.0, pointerLocked: false, time: 0, shakeIntensity: 0,
             camera: { yaw: Math.PI, pitch: 0.25, distance: 4.5, minDist: 2.5, maxDist: 8.0 },
-            hp: 100, maxHp: 100, nomGauge: 0, maxNom: 100, 
-            
+            hp: 100, maxHp: 100, nomGauge: 0, maxNom: 100,
+
             // --- Leveling System ---
             level: 1, maxLevel: 8, exp: 0,
-            
+
             // Inventory System
             inventory: {
                 health: { small: 0, medium: 0, large: 0 },
@@ -250,19 +745,19 @@
                 def: { small: 0, medium: 0, large: 0 }
             },
             maxPerSize: 4,
-            unlockedSpells:[], 
+            unlockedSpells: [],
             checkpoint: new THREE.Vector3(0, 0, 10), npcFlags: {},
-            
+
             // Combat Buffs
             combatAtkBuff: 0, combatDefBuff: 0,
-            
+
             preCombatPos: new THREE.Vector3(), preCombatRot: 0,
-            combatEnemy: null, combatState: 'idle', defending: false, nextHitAbsorbed: false,
+            combatEnemy: null, combatState: 'idle', defending: false, nextHitAbsorbed: 0,
             combatAnim: { active: false, phase: 'idle', t: 0, attacker: null, target: null, startPos: new THREE.Vector3(), tgtPos: new THREE.Vector3() },
             camSmoothPos: new THREE.Vector3(), camSmoothLook: new THREE.Vector3()
         };
 
-        const EXP_REQ =[0, 50, 120, 220, 350, 520, 750, 1050]; // Index maps directly to the EXP needed for the *next* level
+        const EXP_REQ = [0, 75, 175, 325, 550, 875, 1350, 2100]; // cumulative XP totals
 
         const SPELLS = {
             'Nom Spark': { cost: 20, desc: 'Quick burst of nom energy.' },
@@ -273,19 +768,19 @@
         };
 
         const ENEMY_DATA = {
-            forestImp: { name: 'Forest Imp', exp: 20, hp: 30, maxHp: 30, atk: 8, color: 0x5a8f4a, scale: 0.8, attacks: ['Scratch', 'Twig Snap'] },
-            corruptedDeer: { name: 'Corrupted Deer', exp: 25, hp: 45, maxHp: 45, atk: 12, color: 0x4a3a2a, scale: 1.1, attacks:['Antler Charge', 'Hoof Kick'] },
-            wardenOfDistance: { name: 'Warden of Distance', exp: 80, hp: 150, maxHp: 150, atk: 18, color: 0x6a7a8a, scale: 2.0, isBoss: true, unlock: 'Nom Spark', attacks:['Mist Slam', 'Cold Slice', 'Distance Kick'] },
-            waterShade: { name: 'Water Shade', exp: 30, hp: 50, maxHp: 50, atk: 14, color: 0x2a4a6a, scale: 0.9, attacks:['Chilling Grasp', 'Drowning Tides'] },
-            dungeonCrawler: { name: 'Dungeon Crawler', exp: 35, hp: 65, maxHp: 65, atk: 16, color: 0x1a2a3a, scale: 1.2, attacks:['Venom Bite', 'Pincer Strike'] },
-            tideOfDoubt: { name: 'The Tide of Doubt', exp: 120, hp: 200, maxHp: 200, atk: 22, color: 0x1a3a5a, scale: 2.2, isBoss: true, unlock: 'Nom Shield', attacks:['Flood of Shadow', 'Doubt Wave', 'Murmur'] },
-            lavaGolem: { name: 'Lava Golem', exp: 45, hp: 80, maxHp: 80, atk: 25, color: 0x8a3a1a, scale: 1.4, attacks:['Obsidian Smash', 'Magma Toss'] },
-            scorchedKnight: { name: 'Scorched Knight', exp: 50, hp: 90, maxHp: 90, atk: 28, color: 0x3a1a1a, scale: 1.1, attacks:['Flaming Sword', 'Shield Bash'] },
-            emberOfAnger: { name: 'The Ember of Anger', exp: 150, hp: 280, maxHp: 280, atk: 35, color: 0xaa2a0a, scale: 2.4, isBoss: true, unlock: 'Nom Pulse', attacks:['Fire Slam', 'Ember Storm', 'Heat Wave'] },
-            shadowKnight: { name: 'Shadow Knight', exp: 60, hp: 120, maxHp: 120, atk: 35, color: 0x111111, scale: 1.1, attacks:['Shadow Strike', 'Mirror Slash'] },
-            mirrorOfFear: { name: 'The Mirror of Fear', exp: 200, hp: 350, maxHp: 350, atk: 40, color: 0x000000, scale: 1.2, isBoss: true, unlock: 'Nom Bind', attacks:['Dread Strike', 'Reflection Pierce', 'Shatter Reality'] },
-            corruptedFamiliar: { name: 'Corrupted Familiar', exp: 70, hp: 150, maxHp: 150, atk: 40, color: 0x442266, scale: 1.3, attacks:['Dark Bite', 'Void Magic'] },
-            theMon: { name: 'The Mon', exp: 0, hp: 600, maxHp: 600, atk: 45, color: 0x220022, scale: 3.0, isBoss: true, isFinal: true, attacks:[] } // Handled dynamically in phase logic
+            forestImp: { name: 'Forest Imp', exp: 12, hp: 30, maxHp: 30, atk: 8, color: 0x5a8f4a, scale: 0.8, attacks: ['Scratch', 'Twig Snap'] },
+            corruptedDeer: { name: 'Corrupted Deer', exp: 15, hp: 45, maxHp: 45, atk: 12, color: 0x4a3a2a, scale: 1.1, attacks: ['Antler Charge', 'Hoof Kick'] },
+            wardenOfDistance: { name: 'Warden of Distance', exp: 60, hp: 150, maxHp: 150, atk: 18, color: 0x6a7a8a, scale: 2.0, isBoss: true, unlock: 'Nom Spark', attacks: ['Mist Slam', 'Cold Slice', 'Distance Kick'] },
+            waterShade: { name: 'Water Shade', exp: 18, hp: 50, maxHp: 50, atk: 14, color: 0x2a4a6a, scale: 0.9, attacks: ['Chilling Grasp', 'Drowning Tides'] },
+            dungeonCrawler: { name: 'Dungeon Crawler', exp: 22, hp: 65, maxHp: 65, atk: 16, color: 0x1a2a3a, scale: 1.2, attacks: ['Venom Bite', 'Pincer Strike'] },
+            tideOfDoubt: { name: 'The Tide of Doubt', exp: 90, hp: 200, maxHp: 200, atk: 22, color: 0x1a3a5a, scale: 2.2, isBoss: true, unlock: 'Nom Shield', attacks: ['Flood of Shadow', 'Doubt Wave', 'Murmur'] },
+            lavaGolem: { name: 'Lava Golem', exp: 35, hp: 160, maxHp: 160, atk: 35, color: 0x8a3a1a, scale: 1.4, attacks: ['Obsidian Smash', 'Magma Toss'] },
+            scorchedKnight: { name: 'Scorched Knight', exp: 45, hp: 180, maxHp: 180, atk: 40, color: 0x3a1a1a, scale: 1.1, attacks: ['Flaming Sword', 'Shield Bash'] },
+            emberOfAnger: { name: 'The Ember of Anger', exp: 180, hp: 560, maxHp: 560, atk: 50, color: 0xaa2a0a, scale: 2.4, isBoss: true, unlock: 'Nom Pulse', attacks: ['Fire Slam', 'Ember Storm', 'Heat Wave'] },
+            shadowKnight: { name: 'Shadow Knight', exp: 60, hp: 240, maxHp: 240, atk: 50, color: 0x111111, scale: 1.1, attacks: ['Shadow Strike', 'Mirror Slash'] },
+            mirrorOfFear: { name: 'The Mirror of Fear', exp: 300, hp: 700, maxHp: 700, atk: 60, color: 0x000000, scale: 1.2, isBoss: true, unlock: 'Nom Bind', attacks: ['Dread Strike', 'Reflection Pierce', 'Shatter Reality'] },
+            corruptedFamiliar: { name: 'Corrupted Familiar', exp: 75, hp: 300, maxHp: 300, atk: 55, color: 0x442266, scale: 1.3, attacks: ['Dark Bite', 'Void Magic'] },
+            theMon: { name: 'The Mon', exp: 0, hp: 1200, maxHp: 1200, atk: 70, color: 0x220022, scale: 3.0, isBoss: true, isFinal: true, attacks: [] } // Handled dynamically in phase logic
         };
 
         // ============================================================
@@ -297,7 +792,7 @@
 
         const wallColliders = new THREE.Group();
         scene.add(wallColliders);
-        const collidersAABB =[]; 
+        const collidersAABB = [];
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -322,26 +817,26 @@
         const particleGeo = new THREE.BufferGeometry();
         const particleCount = 600;
         const posArr = new Float32Array(particleCount * 3);
-        for(let i=0; i<particleCount*3; i++) posArr[i] = (Math.random() - 0.5) * 30;
+        for (let i = 0; i < particleCount * 3; i++) posArr[i] = (Math.random() - 0.5) * 30;
         particleGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-        const particleMat = new THREE.PointsMaterial({color: 0x88cc88, size: 0.15, transparent: true, opacity: 0.6});
+        const particleMat = new THREE.PointsMaterial({ color: 0x88cc88, size: 0.15, transparent: true, opacity: 0.6 });
         const particles = new THREE.Points(particleGeo, particleMat);
         scene.add(particles);
 
         const char = new THREE.Group();
-        char.position.copy(state.checkpoint); 
+        char.position.copy(state.checkpoint);
         scene.add(char);
 
         let mixer, activeAction;
         let actions = {}; let modelReady = false;
         const fbxLoader = new FBXLoader();
-        
+
         const loadCharacter = () => {
             fbxLoader.load('./ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Character_output.fbx', (object) => {
-                object.scale.set(0.01, 0.01, 0.01); 
+                object.scale.set(0.01, 0.01, 0.01);
                 object.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
                 char.add(object); mixer = new THREE.AnimationMixer(object);
-                
+
                 // Find right hand bone and attach sword
                 let rightHand = null;
                 object.traverse((child) => {
@@ -353,7 +848,7 @@
                     }
                 });
                 console.log('HAND BONE:', rightHand ? rightHand.name : 'NOT FOUND');
-                
+
                 fbxLoader.load('./ishani_sword/Meshy_AI_Cruciform_Longsword_0503231945_texture_fbx/Meshy_AI_Cruciform_Longsword_0503231945_texture.fbx', (sword) => {
                     console.log('SWORD LOADED, meshes:', sword.children.length);
                     const swordGroup = new THREE.Group();
@@ -380,7 +875,7 @@
                 }, undefined, (err) => {
                     console.error('Sword load failed:', err);
                 });
-                
+
                 const loadAnim = (name, file) => {
                     fbxLoader.load(file, (anim) => {
                         const action = mixer.clipAction(anim.animations[0]); actions[name] = action;
@@ -389,7 +884,7 @@
                 };
                 loadAnim('idle', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Idle_6_withSkin.fbx');
                 loadAnim('walk', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Walking_Woman_withSkin.fbx');
-                loadAnim('run',  './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Run_02_withSkin.fbx');
+                loadAnim('run', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Run_02_withSkin.fbx');
                 loadAnim('attack', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Thrust_Slash_withSkin.fbx');
                 loadAnim('spellSpark', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_mage_soell_cast_7_withSkin.fbx');
                 loadAnim('spellShield', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_mage_soell_cast_4_withSkin.fbx');
@@ -398,11 +893,11 @@
                 loadAnim('spellBurst', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Skill_01_withSkin.fbx');
                 loadAnim('dead', './ishani_sprite/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Dead_withSkin.fbx');
             }, undefined, () => {
-                const fallback = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1.0, 4, 8), new THREE.MeshStandardMaterial({color: 0x888888}));
+                const fallback = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1.0, 4, 8), new THREE.MeshStandardMaterial({ color: 0x888888 }));
                 fallback.position.y = 0.9; fallback.castShadow = true; char.add(fallback); modelReady = true;
             });
         };
-        loadCharacter(); 
+        loadCharacter();
 
         let animationLocked = false;
         function updateCharacterAnimation(dt, isMoving, isSprint) {
@@ -420,17 +915,17 @@
         // ============================================================
         // PROCEDURAL LEVEL DESIGN (MAZES & ROOMS)
         // ============================================================
-        
-        const safeLines =[]; const safeRects =[];
-        const enemies = []; const interactables =[]; 
+
+        const safeLines = []; const safeRects = [];
+        const enemies = []; const interactables = [];
 
         function getSegmentDistSq(p, v, w) {
-            let l2 = (v.x - w.x)**2 + (v.z - w.z)**2;
-            if (l2 === 0) return { distSq: (p.x - v.x)**2 + (p.z - v.z)**2, projX: v.x, projZ: v.z };
+            let l2 = (v.x - w.x) ** 2 + (v.z - w.z) ** 2;
+            if (l2 === 0) return { distSq: (p.x - v.x) ** 2 + (p.z - v.z) ** 2, projX: v.x, projZ: v.z };
             let t = ((p.x - v.x) * (w.x - v.x) + (p.z - v.z) * (w.z - v.z)) / l2;
             t = Math.max(0, Math.min(1, t));
             let projX = v.x + t * (w.x - v.x); let projZ = v.z + t * (w.z - v.z);
-            return { distSq: (p.x - projX)**2 + (p.z - projZ)**2, projX, projZ };
+            return { distSq: (p.x - projX) ** 2 + (p.z - projZ) ** 2, projX, projZ };
         }
         function getRectDistSq(p, r) {
             const dx = Math.max(r.minX - p.x, 0, p.x - r.maxX);
@@ -438,73 +933,86 @@
             if (dx === 0 && dz === 0) return { distSq: 0, projX: p.x, projZ: p.z };
             const projX = Math.max(r.minX, Math.min(p.x, r.maxX));
             const projZ = Math.max(r.minZ, Math.min(p.z, r.maxZ));
-            return { distSq: dx*dx + dz*dz, projX, projZ };
+            return { distSq: dx * dx + dz * dz, projX, projZ };
         }
 
-        function cap(r, h, mat, x, y, z, parent) { const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(0, h-r*2), 4, 8), mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; }
-        function box(w, h, d, mat, x, y, z, parent, isWall=false) { 
-            const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); 
-            if (isWall) collidersAABB.push({minX: x - w/2, maxX: x + w/2, minZ: z - d/2, maxZ: z + d/2});
-            return m; 
+        function cap(r, h, mat, x, y, z, parent) { const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(0, h - r * 2), 4, 8), mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; }
+        function box(w, h, d, mat, x, y, z, parent, isWall = false) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m);
+            if (isWall) collidersAABB.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2 });
+            return m;
         }
-        function plane(w, d, mat, x, y, z, rx=0) { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat); p.position.set(x, y, z); p.rotation.x = rx; p.receiveShadow = true; scene.add(p); return p; }
-        
+        function plane(w, d, mat, x, y, z, rx = 0) { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat); p.position.set(x, y, z); p.rotation.x = rx; p.receiveShadow = true; scene.add(p); return p; }
+
         function fitToGround(mesh) {
             mesh.updateMatrixWorld(true);
             const box = new THREE.Box3().setFromObject(mesh);
             mesh.position.y = -box.min.y;
         }
-        
+        function alignToPath(group, x, z) {
+            let minD = Infinity;
+            let bestAngle = 0;
+            for (let seg of safeLines) {
+                const res = getSegmentDistSq({ x, z }, { x: seg.x1, z: seg.z1 }, { x: seg.x2, z: seg.z2 });
+                if (res.distSq < minD) {
+                    minD = res.distSq;
+                    bestAngle = Math.atan2(seg.x2 - seg.x1, seg.z2 - seg.z1);
+                }
+            }
+            // Add small random variation so identical enemies don't look cloned
+            group.rotation.y = bestAngle + Math.PI + (Math.random() - 0.5) * 0.3;
+        }
+
         function spawnItem(type, size, x, z) {
             let m;
             let yOffset = 0;
-            
+
             let redModel = size === 'small' ? loadedPotionRedSmall : (size === 'medium' ? loadedPotionRedMedium : loadedPotionRedLarge);
             let blueModel = size === 'small' ? loadedPotionBlueSmall : (size === 'medium' ? loadedPotionBlueMedium : loadedPotionBlueLarge);
             let greenModel = size === 'small' ? loadedPotionGreenSmall : (size === 'medium' ? loadedPotionGreenMedium : loadedPotionGreenLarge);
 
             if (type === 'health') {
-                if (redModel) { 
-                    m = redModel.clone(); 
-                    m.scale.set(0.8, 0.8, 0.8); 
-                    m.traverse(c => { if(c.isMesh) c.material = new THREE.MeshStandardMaterial({color: 0xff3333, emissive: 0x441111}); });
+                if (redModel) {
+                    m = redModel.clone();
+                    m.scale.set(0.8, 0.8, 0.8);
+                    m.traverse(c => { if (c.isMesh) c.material = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x441111 }); });
                 }
-                else { m = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshStandardMaterial({color: 0x44ff44, emissive: 0x118811})); yOffset = 0.3; }
+                else { m = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshStandardMaterial({ color: 0x44ff44, emissive: 0x118811 })); yOffset = 0.3; }
             }
             else if (type === 'atk') {
-                if (blueModel) { 
-                    m = blueModel.clone(); 
-                    m.scale.set(0.8, 0.8, 0.8); 
-                    m.traverse(c => { if(c.isMesh) c.material = new THREE.MeshStandardMaterial({color: 0x3333ff, emissive: 0x111144}); });
+                if (blueModel) {
+                    m = blueModel.clone();
+                    m.scale.set(0.8, 0.8, 0.8);
+                    m.traverse(c => { if (c.isMesh) c.material = new THREE.MeshStandardMaterial({ color: 0x3333ff, emissive: 0x111144 }); });
                 }
-                else { m = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.6, 4), new THREE.MeshStandardMaterial({color: 0xff4444, emissive: 0x881111})); yOffset = 0.5; }
+                else { m = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0x881111 })); yOffset = 0.5; }
             }
             else if (type === 'def') {
-                if (greenModel) { 
-                    m = greenModel.clone(); 
-                    m.scale.set(0.8, 0.8, 0.8); 
-                    m.traverse(c => { if(c.isMesh) c.material = new THREE.MeshStandardMaterial({color: 0x33ff33, emissive: 0x114411}); });
+                if (greenModel) {
+                    m = greenModel.clone();
+                    m.scale.set(0.8, 0.8, 0.8);
+                    m.traverse(c => { if (c.isMesh) c.material = new THREE.MeshStandardMaterial({ color: 0x33ff33, emissive: 0x114411 }); });
                 }
-                else { m = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshStandardMaterial({color: 0x4444ff, emissive: 0x111188})); yOffset = 0.3; }
+                else { m = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0x4444ff, emissive: 0x111188 })); yOffset = 0.3; }
             }
-            
-            if (m.isGroup) m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+
+            if (m.isGroup) m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
             else { m.castShadow = true; m.receiveShadow = true; }
-            
-            m.position.set(x, yOffset, z); 
-            scene.add(m); 
-            interactables.push({type: type, size: size, mesh: m, active: true});
+
+            m.position.set(x, yOffset, z);
+            scene.add(m);
+            interactables.push({ type: type, size: size, mesh: m, active: true });
         }
         function spawnEnemy(type, x, z) {
-            const data = ENEMY_DATA[type]; const group = new THREE.Group(); 
+            const data = ENEMY_DATA[type]; const group = new THREE.Group();
             let mixer = null;
             let activeAction = null;
-            
+
             if (type === 'wardenOfDistance' && loadedWardenModel) {
                 let m = loadedWardenModel;
                 m.scale.set(0.02, 0.02, 0.02);
                 m.rotation.y = 0;
-                m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                 fitToGround(m);
                 group.add(m);
                 mixer = new THREE.AnimationMixer(m);
@@ -517,7 +1025,7 @@
                 let m = loadedTideModel;
                 m.scale.set(0.02, 0.02, 0.02);
                 m.rotation.y = 0;
-                m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                 fitToGround(m);
                 group.add(m);
                 mixer = new THREE.AnimationMixer(m);
@@ -530,7 +1038,7 @@
                 let m = loadedEmberModel;
                 m.scale.set(0.02, 0.02, 0.02);
                 m.rotation.y = 0;
-                m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                 fitToGround(m);
                 group.add(m);
                 mixer = new THREE.AnimationMixer(m);
@@ -543,7 +1051,7 @@
                 let m = loadedMonModel;
                 m.scale.set(0.02, 0.02, 0.02);
                 m.rotation.y = 0;
-                m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                 fitToGround(m);
                 group.add(m);
                 mixer = new THREE.AnimationMixer(m);
@@ -552,96 +1060,219 @@
                     activeAction.play();
                 }
                 enemyMixers.push(mixer);
+            } else if (type === 'mirrorOfFear' && loadedMirrorModel) {
+                let m = loadedMirrorModel;
+                m.scale.set(0.02, 0.02, 0.02);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                mixer = new THREE.AnimationMixer(m);
+                if (mirrorIdleAnim) {
+                    activeAction = mixer.clipAction(mirrorIdleAnim);
+                    activeAction.play();
+                }
+                enemyMixers.push(mixer);
+
+                // Attach sword — identical mechanism to Ishani
+                let rightHand = null;
+                m.traverse((child) => {
+                    if (child.isBone && child.name === 'RightHand') rightHand = child;
+                    if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones) {
+                        child.skeleton.bones.forEach((bone) => {
+                            if (bone.name === 'RightHand') rightHand = bone;
+                        });
+                    }
+                });
+                if (loadedMirrorSword) {
+                    const swordGroup = new THREE.Group();
+                    loadedMirrorSword.traverse((child) => {
+                        if (child.isMesh) {
+                            const sm = child.clone();
+                            sm.castShadow = true; sm.receiveShadow = true;
+                            swordGroup.add(sm);
+                        }
+                    });
+                    swordGroup.scale.set(0.5, 0.5, 0.5);
+                    swordGroup.rotation.set(Math.PI / 2, -Math.PI / 2, -Math.PI / 2);
+                    swordGroup.position.set(0, 50, 0);
+                    if (rightHand) {
+                        rightHand.add(swordGroup);
+                    } else {
+                        swordGroup.position.set(40, 90, 20);
+                        m.add(swordGroup);
+                    }
+                }
+            } else if (type === 'forestImp' && loadedForestImp) {
+                let m = loadedForestImp.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'corruptedDeer' && loadedCorruptedDeer) {
+                let m = loadedCorruptedDeer.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'waterShade' && loadedWaterShade) {
+                let m = loadedWaterShade.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'dungeonCrawler' && loadedDungeonCrawler) {
+                let m = loadedDungeonCrawler.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'lavaGolem' && loadedLavaGolem) {
+                let m = loadedLavaGolem.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'scorchedKnight' && loadedScorchedKnight) {
+                let m = loadedScorchedKnight.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'shadowKnight' && loadedShadowKnight) {
+                let m = loadedShadowKnight.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
+            } else if (type === 'corruptedFamiliar' && loadedCorruptedFamiliar) {
+                let m = loadedCorruptedFamiliar.clone();
+                m.scale.set(0.015, 0.015, 0.015);
+                m.rotation.y = 0;
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+                fitToGround(m);
+                group.add(m);
+                alignToPath(group, x, z);
             } else {
-                cap(0.4 * data.scale, 1.2 * data.scale, new THREE.MeshStandardMaterial({color: data.color, roughness: 0.8}), 0, 0.6 * data.scale, 0, group);
+                cap(0.4 * data.scale, 1.2 * data.scale, new THREE.MeshStandardMaterial({ color: data.color, roughness: 0.8 }), 0, 0.6 * data.scale, 0, group);
             }
-            
+
             group.position.set(x, 0, z); group.castShadow = true; scene.add(group);
             const e = { type, data, mesh: group, hp: data.hp, maxHp: data.maxHp, x, z, startX: x, startZ: z, defeated: false, boundTurns: 0, phase: 1, mixer, activeAction };
             enemies.push(e); return e;
         }
-        function spawnNPC(name, modelType, x, z, rotY, dialogueText, givesHerb=false) {
+        function spawnNPC(name, modelType, x, z, rotY, dialogueText, givesHerb = false, y = 0, scaleY = 1) {
             let modelScene = null;
             if (modelType === 'ranger') modelScene = npcRanger;
             else if (modelType === 'rogue') modelScene = npcRogue;
             else if (modelType === 'barbarian') modelScene = npcBarbarian;
             else if (modelType === 'mage') modelScene = npcMage;
             else if (modelType === 'knight') modelScene = npcKnight;
+            else if (modelType === 'madhav') modelScene = npcMadhav;
 
             const grp = new THREE.Group();
-            
+
             if (modelScene) {
                 let m = modelScene.clone();
+                // Fix: SkinnedMesh.clone() shares the original skeleton's bones.
+                // Rebind each SkinnedMesh to use the cloned bones in this hierarchy.
+                m.traverse((child) => {
+                    if (child.isSkinnedMesh) {
+                        const newBones = child.skeleton.bones.map((bone) => {
+                            return m.getObjectByName(bone.name);
+                        });
+                        const newSkeleton = new THREE.Skeleton(newBones, child.skeleton.boneInverses);
+                        child.bind(newSkeleton, child.bindMatrix);
+                    }
+                });
                 m.position.set(0, 0, 0);
-                m.scale.set(1.5, 1.5, 1.5);
-                m.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                if (modelType === 'madhav') {
+                    m.scale.set(0.01, 0.01 * scaleY, 0.01);
+                } else {
+                    m.scale.set(1.5, 1.5 * scaleY, 1.5);
+                }
+                m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                 fitToGround(m);
                 grp.add(m);
 
-                if (npcIdleAnim) {
+                if (npcIdleAnim && modelType !== 'madhav') {
                     let mixer = new THREE.AnimationMixer(m);
                     let action = mixer.clipAction(npcIdleAnim);
                     action.play();
                     npcMixers.push(mixer);
                 }
             } else {
-                cap(0.2, 0.8, new THREE.MeshStandardMaterial({color: 0xffffff}), 0, 0.4, 0, grp); 
-                cap(0.12, 0.2, new THREE.MeshStandardMaterial({color: 0xffdbac}), 0, 0.9, 0, grp); 
+                cap(0.2, 0.8 * scaleY, new THREE.MeshStandardMaterial({ color: 0xffffff }), 0, 0.4 * scaleY, 0, grp);
+                cap(0.12, 0.2 * scaleY, new THREE.MeshStandardMaterial({ color: 0xffdbac }), 0, 0.9 * scaleY, 0, grp);
             }
 
-            grp.position.set(x, 0, z); 
+            grp.position.set(x, y, z);
             grp.rotation.y = rotY;
-            scene.add(grp); 
+            scene.add(grp);
             interactables.push({ type: 'npc', mesh: grp, active: true, name, dialogue: dialogueText, givesHerb, spoken: false });
         }
         function spawnLetter(x, z, text) {
-            const m = box(0.4, 0.05, 0.3, new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x222222}), x, 0.02, z, scene);
+            const m = box(0.4, 0.05, 0.3, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x222222 }), x, 0.02, z, scene);
             interactables.push({ type: 'letter', mesh: m, active: true, text });
         }
-        function spawnDecor(modelBase, x, y, z, scale, rotY, rotX=0, rotZ=0, overrideColor=null) {
+        function spawnDecor(modelBase, x, y, z, scale, rotY, rotX = 0, rotZ = 0, overrideColor = null) {
             if (!modelBase) return null;
             let m = modelBase.clone();
             m.position.set(x, y, z);
             m.scale.set(scale, scale, scale);
             m.rotation.set(rotX, rotY, rotZ);
-            m.traverse(c => { 
-                if (c.isMesh) { 
-                    c.castShadow = true; c.receiveShadow = true; 
-                    if (overrideColor) c.material = new THREE.MeshStandardMaterial({color: overrideColor, roughness: 0.9});
-                } 
+            m.traverse(c => {
+                if (c.isMesh) {
+                    c.castShadow = true; c.receiveShadow = true;
+                    if (overrideColor) c.material = new THREE.MeshStandardMaterial({ color: overrideColor, roughness: 0.9 });
+                }
             });
             scene.add(m);
             return m;
         }
 
-        function scatterDungeonDecor(cx, cz, w, d, density, gaps={}) {
+        function scatterDungeonDecor(cx, cz, w, d, density, gaps = {}) {
             let placedItems = [];
             let isCorridor = (w <= 12 || d <= 12);
-            
+
             if (!isCorridor) {
                 let count = Math.floor((w * d) * density);
-                for(let i=0; i<count; i++) {
-                    let rx = cx + (Math.random() > 0.5 ? 1 : -1) * (w/2 - 3 - Math.random()*2);
-                    let rz = cz + (Math.random() > 0.5 ? 1 : -1) * (d/2 - 3 - Math.random()*2);
-                    
+                for (let i = 0; i < count; i++) {
+                    let rx = cx + (Math.random() > 0.5 ? 1 : -1) * (w / 2 - 3 - Math.random() * 2);
+                    let rz = cz + (Math.random() > 0.5 ? 1 : -1) * (d / 2 - 3 - Math.random() * 2);
+
                     let overlap = false;
                     for (let p of placedItems) { if (Math.hypot(p.x - rx, p.z - rz) < 1.8) { overlap = true; break; } }
                     if (overlap) continue;
-                    placedItems.push({x: rx, z: rz});
+                    placedItems.push({ x: rx, z: rz });
 
-                    let scale = 1.0 + Math.random()*0.5;
-                    let yOff = 0.02; 
-                    
+                    let scale = 1.0 + Math.random() * 0.5;
+                    let yOff = 0.02;
+
                     let decorItems = [
-                        loadedChest, loadedBench, loadedChair, 
+                        loadedChest, loadedBench, loadedChair,
                         loadedTable, loadedTableSmall, loadedPots
                     ];
                     let item = decorItems[Math.floor(Math.random() * decorItems.length)];
-                    spawnDecor(item, rx, yOff, rz, scale, Math.random()*Math.PI*2);
+                    spawnDecor(item, rx, yOff, rz, scale, Math.random() * Math.PI * 2);
                 }
             }
 
-            let checkGap = (pos, gapWidth) => { if (!gapWidth) return false; return Math.abs(pos) < gapWidth/2 + 1; };
+            let checkGap = (pos, gapWidth) => { if (!gapWidth) return false; return Math.abs(pos) < gapWidth / 2 + 1; };
             let spawnWallDecor = (model, x, z, rotY) => {
                 if (model === loadedBanner) spawnDecor(model, x, 8, z, 2.0, rotY);
                 else if (model === loadedShield) spawnDecor(model, x, 5, z, 2.0, rotY);
@@ -662,27 +1293,27 @@
             };
 
             if (w >= 20) {
-                if (!checkGap(-w/4, gaps.N)) spawnWallDecor(getRoomWallDecor(), cx - w/4, cz - d/2 + 1.0, 0);
-                if (!checkGap(w/4, gaps.N)) spawnWallDecor(getRoomWallDecor(), cx + w/4, cz - d/2 + 1.0, 0);
-                if (!checkGap(-w/4, gaps.S)) spawnWallDecor(getRoomWallDecor(), cx - w/4, cz + d/2 - 1.0, Math.PI);
-                if (!checkGap(w/4, gaps.S)) spawnWallDecor(getRoomWallDecor(), cx + w/4, cz + d/2 - 1.0, Math.PI);
+                if (!checkGap(-w / 4, gaps.N)) spawnWallDecor(getRoomWallDecor(), cx - w / 4, cz - d / 2 + 1.0, 0);
+                if (!checkGap(w / 4, gaps.N)) spawnWallDecor(getRoomWallDecor(), cx + w / 4, cz - d / 2 + 1.0, 0);
+                if (!checkGap(-w / 4, gaps.S)) spawnWallDecor(getRoomWallDecor(), cx - w / 4, cz + d / 2 - 1.0, Math.PI);
+                if (!checkGap(w / 4, gaps.S)) spawnWallDecor(getRoomWallDecor(), cx + w / 4, cz + d / 2 - 1.0, Math.PI);
             } else if (w >= 6 || isCorridor) {
                 let mN = isCorridor ? loadedTorchWall : getRoomWallDecor();
                 let mS = isCorridor ? loadedTorchWall : getRoomWallDecor();
-                if (!checkGap(0, gaps.N)) spawnWallDecor(mN, cx, cz - d/2 + 1.0, 0);
-                if (!checkGap(0, gaps.S)) spawnWallDecor(mS, cx, cz + d/2 - 1.0, Math.PI);
+                if (!checkGap(0, gaps.N)) spawnWallDecor(mN, cx, cz - d / 2 + 1.0, 0);
+                if (!checkGap(0, gaps.S)) spawnWallDecor(mS, cx, cz + d / 2 - 1.0, Math.PI);
             }
 
             if (d >= 20) {
-                if (!checkGap(-d/4, gaps.W)) spawnWallDecor(getRoomWallDecor(), cx - w/2 + 1.0, cz - d/4, Math.PI/2);
-                if (!checkGap(d/4, gaps.W)) spawnWallDecor(getRoomWallDecor(), cx - w/2 + 1.0, cz + d/4, Math.PI/2);
-                if (!checkGap(-d/4, gaps.E)) spawnWallDecor(getRoomWallDecor(), cx + w/2 - 1.0, cz - d/4, -Math.PI/2);
-                if (!checkGap(d/4, gaps.E)) spawnWallDecor(getRoomWallDecor(), cx + w/2 - 1.0, cz + d/4, -Math.PI/2);
+                if (!checkGap(-d / 4, gaps.W)) spawnWallDecor(getRoomWallDecor(), cx - w / 2 + 1.0, cz - d / 4, Math.PI / 2);
+                if (!checkGap(d / 4, gaps.W)) spawnWallDecor(getRoomWallDecor(), cx - w / 2 + 1.0, cz + d / 4, Math.PI / 2);
+                if (!checkGap(-d / 4, gaps.E)) spawnWallDecor(getRoomWallDecor(), cx + w / 2 - 1.0, cz - d / 4, -Math.PI / 2);
+                if (!checkGap(d / 4, gaps.E)) spawnWallDecor(getRoomWallDecor(), cx + w / 2 - 1.0, cz + d / 4, -Math.PI / 2);
             } else if (d >= 6 || isCorridor) {
                 let mW = isCorridor ? loadedShield : getRoomWallDecor();
                 let mE = isCorridor ? loadedShield : getRoomWallDecor();
-                if (!checkGap(0, gaps.W)) spawnWallDecor(mW, cx - w/2 + 1.0, cz, Math.PI/2);
-                if (!checkGap(0, gaps.E)) spawnWallDecor(mE, cx + w/2 - 1.0, cz, -Math.PI/2);
+                if (!checkGap(0, gaps.W)) spawnWallDecor(mW, cx - w / 2 + 1.0, cz, Math.PI / 2);
+                if (!checkGap(0, gaps.E)) spawnWallDecor(mE, cx + w / 2 - 1.0, cz, -Math.PI / 2);
             }
         }
 
@@ -691,33 +1322,33 @@
             if (loadedTorchLit) {
                 const torch = loadedTorchLit.clone();
                 torch.scale.set(2.5, 2.5, 2.5);
-                torch.traverse(child => { if(child.isMesh) { child.castShadow = true; } });
+                torch.traverse(child => { if (child.isMesh) { child.castShadow = true; } });
                 c.add(torch);
             } else {
-                box(0.8, 0.2, 0.8, new THREE.MeshStandardMaterial({color:0x444444}), 0, 0.1, 0, c);
+                box(0.8, 0.2, 0.8, new THREE.MeshStandardMaterial({ color: 0x444444 }), 0, 0.1, 0, c);
             }
             const fireLight = new THREE.PointLight(0xff8844, 2.5, 12); fireLight.position.y = 1.2; c.add(fireLight);
             c.position.set(x, 0, z); scene.add(c);
             interactables.push({ type: 'campfire', mesh: c, active: true });
         }
 
-        function buildWallTiled(x, y, z, length, matWall, rotation=0) {
+        function buildWallTiled(x, y, z, length, matWall, rotation = 0) {
             let wBox = rotation === 0 ? length : 2;
             let dBox = rotation === 0 ? 2 : length;
-            let mBox = new THREE.Mesh(new THREE.BoxGeometry(wBox, 12, dBox), new THREE.MeshBasicMaterial({visible: false}));
+            let mBox = new THREE.Mesh(new THREE.BoxGeometry(wBox, 12, dBox), new THREE.MeshBasicMaterial({ visible: false }));
             mBox.position.set(x, 6, z); // Center Y for collision
             wallColliders.add(mBox);
-            collidersAABB.push({minX: x - wBox/2, maxX: x + wBox/2, minZ: z - dBox/2, maxZ: z + dBox/2});
+            collidersAABB.push({ minX: x - wBox / 2, maxX: x + wBox / 2, minZ: z - dBox / 2, maxZ: z + dBox / 2 });
 
             if (loadedWallScene) {
                 const tileW = 4;
                 const tiles = Math.ceil(length / tileW);
                 const actualTileW = length / tiles;
-                
-                for(let i=0; i<tiles; i++) {
-                    for(let stack=0; stack<3; stack++) { 
+
+                for (let i = 0; i < tiles; i++) {
+                    for (let stack = 0; stack < 3; stack++) {
                         let w = loadedWallScene.clone();
-                        let offset = -length/2 + actualTileW/2 + i * actualTileW;
+                        let offset = -length / 2 + actualTileW / 2 + i * actualTileW;
                         if (rotation === 0) {
                             w.position.set(x + offset, stack * 4, z);
                         } else {
@@ -725,7 +1356,7 @@
                             w.rotation.y = rotation;
                         }
                         w.scale.set(actualTileW / tileW, 1, 1);
-                        w.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                        w.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
                         scene.add(w);
                     }
                 }
@@ -736,30 +1367,30 @@
             }
         }
 
-        function buildRoom(cx, cz, w, d, matWall, floorMat, gaps={}) {
-            safeRects.push({ minX: cx - w/2 + 2, maxX: cx + w/2 - 2, minZ: cz - d/2 + 2, maxZ: cz + d/2 - 2 });
-            plane(w, d, floorMat, cx, 0.01, cz, -Math.PI/2);
-            if (gaps.N) { let lw = (w - gaps.N)/2; if(lw > 0) { buildWallTiled(cx - w/2 + lw/2, 0, cz - d/2, lw, matWall); buildWallTiled(cx + w/2 - lw/2, 0, cz - d/2, lw, matWall); } } else { buildWallTiled(cx, 0, cz - d/2, w, matWall); }
-            if (gaps.S) { let lw = (w - gaps.S)/2; if(lw > 0) { buildWallTiled(cx - w/2 + lw/2, 0, cz + d/2, lw, matWall); buildWallTiled(cx + w/2 - lw/2, 0, cz + d/2, lw, matWall); } } else { buildWallTiled(cx, 0, cz + d/2, w, matWall); }
-            if (gaps.W) { let lw = (d - gaps.W)/2; if(lw > 0) { buildWallTiled(cx - w/2, 0, cz - d/2 + lw/2, lw, matWall, Math.PI/2); buildWallTiled(cx - w/2, 0, cz + d/2 - lw/2, lw, matWall, Math.PI/2); } } else { buildWallTiled(cx - w/2, 0, cz, d, matWall, Math.PI/2); }
-            if (gaps.E) { let lw = (d - gaps.E)/2; if(lw > 0) { buildWallTiled(cx + w/2, 0, cz - d/2 + lw/2, lw, matWall, Math.PI/2); buildWallTiled(cx + w/2, 0, cz + d/2 - lw/2, lw, matWall, Math.PI/2); } } else { buildWallTiled(cx + w/2, 0, cz, d, matWall, Math.PI/2); }
-            
+        function buildRoom(cx, cz, w, d, matWall, floorMat, gaps = {}) {
+            safeRects.push({ minX: cx - w / 2 + 2, maxX: cx + w / 2 - 2, minZ: cz - d / 2 + 2, maxZ: cz + d / 2 - 2 });
+            plane(w, d, floorMat, cx, 0.01, cz, -Math.PI / 2);
+            if (gaps.N) { let lw = (w - gaps.N) / 2; if (lw > 0) { buildWallTiled(cx - w / 2 + lw / 2, 0, cz - d / 2, lw, matWall); buildWallTiled(cx + w / 2 - lw / 2, 0, cz - d / 2, lw, matWall); } } else { buildWallTiled(cx, 0, cz - d / 2, w, matWall); }
+            if (gaps.S) { let lw = (w - gaps.S) / 2; if (lw > 0) { buildWallTiled(cx - w / 2 + lw / 2, 0, cz + d / 2, lw, matWall); buildWallTiled(cx + w / 2 - lw / 2, 0, cz + d / 2, lw, matWall); } } else { buildWallTiled(cx, 0, cz + d / 2, w, matWall); }
+            if (gaps.W) { let lw = (d - gaps.W) / 2; if (lw > 0) { buildWallTiled(cx - w / 2, 0, cz - d / 2 + lw / 2, lw, matWall, Math.PI / 2); buildWallTiled(cx - w / 2, 0, cz + d / 2 - lw / 2, lw, matWall, Math.PI / 2); } } else { buildWallTiled(cx - w / 2, 0, cz, d, matWall, Math.PI / 2); }
+            if (gaps.E) { let lw = (d - gaps.E) / 2; if (lw > 0) { buildWallTiled(cx + w / 2, 0, cz - d / 2 + lw / 2, lw, matWall, Math.PI / 2); buildWallTiled(cx + w / 2, 0, cz + d / 2 - lw / 2, lw, matWall, Math.PI / 2); } } else { buildWallTiled(cx + w / 2, 0, cz, d, matWall, Math.PI / 2); }
+
             const cw = 2.5;
-            buildWallTiled(cx - w/2, 0, cz - d/2, cw, matWall);
-            buildWallTiled(cx + w/2, 0, cz - d/2, cw, matWall);
-            buildWallTiled(cx - w/2, 0, cz + d/2, cw, matWall);
-            buildWallTiled(cx + w/2, 0, cz + d/2, cw, matWall);
+            buildWallTiled(cx - w / 2, 0, cz - d / 2, cw, matWall);
+            buildWallTiled(cx + w / 2, 0, cz - d / 2, cw, matWall);
+            buildWallTiled(cx - w / 2, 0, cz + d / 2, cw, matWall);
+            buildWallTiled(cx + w / 2, 0, cz + d / 2, cw, matWall);
 
             scatterDungeonDecor(cx, cz, w, d, 0.015, gaps);
         }
 
-        const forestMat = new THREE.MeshStandardMaterial({color: 0x1a2e1a}); const dirtMat = new THREE.MeshStandardMaterial({color: 0x3d2b1f});
-        const dungeonFloorMat = new THREE.MeshStandardMaterial({color: 0x222233}); const dungeonWallMat = new THREE.MeshStandardMaterial({color: 0x444455, roughness: 0.9});
-        const waterMat = new THREE.MeshStandardMaterial({color: 0x1a4a6a, transparent: true, opacity: 0.7});
-        const ashMat = new THREE.MeshStandardMaterial({color: 0x251515}); const lavaMat = new THREE.MeshBasicMaterial({color: 0xff5500});
-        const rockMat = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.2});
-        const spireFloorMat = new THREE.MeshStandardMaterial({color: 0x050505}); const spireMat = new THREE.MeshStandardMaterial({color: 0x000000, roughness: 0.1});
-        const castleFloorMat = new THREE.MeshStandardMaterial({color: 0x222222}); const pillarMat = new THREE.MeshStandardMaterial({color: 0x111111});
+        const forestMat = new THREE.MeshStandardMaterial({ color: 0x1a2e1a }); const dirtMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
+        const dungeonFloorMat = new THREE.MeshStandardMaterial({ color: 0x222233 }); const dungeonWallMat = new THREE.MeshStandardMaterial({ color: 0x444455, roughness: 0.9 });
+        const waterMat = new THREE.MeshStandardMaterial({ color: 0x1a4a6a, transparent: true, opacity: 0.7 });
+        const ashMat = new THREE.MeshStandardMaterial({ color: 0x251515 }); const lavaMat = new THREE.MeshBasicMaterial({ color: 0xff5500 });
+        const rockMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
+        const spireFloorMat = new THREE.MeshStandardMaterial({ color: 0x050505 }); const spireMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.1 });
+        const castleFloorMat = new THREE.MeshStandardMaterial({ color: 0x222222 }); const pillarMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
 
         function addPathLines(lines) { lines.forEach(l => safeLines.push(l)); }
 
@@ -775,20 +1406,20 @@
         let loadedChest = null, loadedBench = null, loadedWeaponRack = null, loadedDarkBarrel = null, loadedDarkCrate = null;
         let loadedShield = null, loadedTorchWall = null;
         let loadedBookcase = null, loadedChair = null, loadedTable = null, loadedTableSmall = null, loadedPots = null;
-        
-        let npcRanger = null, npcRogue = null, npcBarbarian = null, npcMage = null, npcKnight = null;
+
+        let npcRanger = null, npcRogue = null, npcBarbarian = null, npcMage = null, npcKnight = null, npcMadhav = null;
         let npcIdleAnim = null;
         let npcMixers = [];
         let enemyMixers = [];
-        
+
         let loadedWardenModel = null;
         let wardenIdleAnim = null, wardenJumpAnim = null, wardenAxeSpinAnim = null, wardenKickAnim = null;
         let wardenIdle2Anim = null, wardenDeadAnim = null;
-        
+
         let loadedTideModel = null;
         let tideIdleAnim = null, tideIdle2Anim = null, tideDeadAnim = null;
         let tideSpellAnim = null, tideSpell1Anim = null, tideSpell2Anim = null;
-        
+
         let loadedEmberModel = null;
         let emberIdleAnim = null, emberDeadAnim = null, emberJumpAnim = null;
         let emberSpellAnim = null, emberSpell2Anim = null, emberRunAnim = null, emberWalkAnim = null;
@@ -804,37 +1435,40 @@
         let mirrorRunAnim = null, mirrorWalkAnim = null;
         let loadedMirrorSword = null;
 
+        let loadedForestImp = null, loadedCorruptedDeer = null, loadedWaterShade = null, loadedDungeonCrawler = null;
+        let loadedLavaGolem = null, loadedScorchedKnight = null, loadedShadowKnight = null, loadedCorruptedFamiliar = null;
+
         async function loadAssets() {
             const gltfLoader = new GLTFLoader();
             return new Promise((resolve) => {
-                let toLoad = 83;
+                let toLoad = 92;
                 let loaded = 0;
                 const loadingText = document.getElementById('loading-text');
-                const checkDone = () => { 
-                    loaded++; 
-                    if(loadingText) loadingText.textContent = `Loading assets... ${loaded} / ${toLoad}`;
-                    if(loaded >= toLoad) resolve(); 
+                const checkDone = () => {
+                    loaded++;
+                    if (loadingText) loadingText.textContent = `Loading assets... ${loaded} / ${toLoad}`;
+                    if (loaded >= toLoad) resolve();
                 };
-                setTimeout(() => { 
-                    if(loaded < toLoad) { 
-                        console.warn('Asset loading timed out, proceeding anyway. Loaded:', loaded, 'of', toLoad); 
-                        resolve(); 
-                    } 
+                setTimeout(() => {
+                    if (loaded < toLoad) {
+                        console.warn('Asset loading timed out, proceeding anyway. Loaded:', loaded, 'of', toLoad);
+                        resolve();
+                    }
                 }, 30000);
-                
+
                 const origLoad = gltfLoader.load.bind(gltfLoader);
                 gltfLoader.load = (url, onLoad) => {
-                    origLoad(url, onLoad, undefined, (err) => { 
-                        console.error("Failed to load", url, err); 
-                        checkDone(); 
+                    origLoad(url, onLoad, undefined, (err) => {
+                        console.error("Failed to load", url, err);
+                        checkDone();
                     });
                 };
-                
+
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Tree_1_A_Color1.gltf', (gltf) => {
                     gltf.scene.traverse((child) => { if (child.isMesh) loadedTreeMeshes.push({ geo: child.geometry, mat: child.material, pos: child.position, rot: child.rotation, scale: child.scale }); });
                     checkDone();
                 });
-                
+
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/wall.gltf.glb', (gltf) => { loadedWallScene = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit_DungeonRemastered_1.1_FREE/Assets/gltf/torch_lit.gltf', (gltf) => { loadedTorchLit = gltf.scene; checkDone(); });
 
@@ -857,24 +1491,24 @@
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Rock_1_A_Color1.gltf', (gltf) => { loadedRock = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Rock_2_A_Color1.gltf', (gltf) => { loadedRock2 = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Rock_3_A_Color1.gltf', (gltf) => { loadedRock3 = gltf.scene; checkDone(); });
-                
+
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Bush_1_A_Color1.gltf', (gltf) => { loadedBush = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Bush_2_A_Color1.gltf', (gltf) => { loadedBush2 = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/Bush_3_A_Color1.gltf', (gltf) => { loadedBush3 = gltf.scene; checkDone(); });
-                
+
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/barrel.gltf.glb', (gltf) => { loadedBarrel = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/crate.gltf.glb', (gltf) => { loadedCrate = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/banner.gltf.glb', (gltf) => { loadedBanner = gltf.scene; checkDone(); });
-                
+
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/chest_common.gltf.glb', (gltf) => { loadedChest = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/bench.gltf.glb', (gltf) => { loadedBench = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/weaponRack.gltf.glb', (gltf) => { loadedWeaponRack = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/barrelDark.gltf.glb', (gltf) => { loadedDarkBarrel = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/crateDark.gltf.glb', (gltf) => { loadedDarkCrate = gltf.scene; checkDone(); });
-                
+
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/shield_common.gltf.glb', (gltf) => { loadedShield = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/torchWall.gltf.glb', (gltf) => { loadedTorchWall = gltf.scene; checkDone(); });
-                
+
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/bookcaseFilled.gltf.glb', (gltf) => { loadedBookcase = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/chair.gltf.glb', (gltf) => { loadedChair = gltf.scene; checkDone(); });
                 gltfLoader.load('./KayKit Dungeon Pack 1.0/Models/gltf/tableMedium.gltf.glb', (gltf) => { loadedTable = gltf.scene; checkDone(); });
@@ -887,12 +1521,13 @@
                 fbxLoader.load('./KayKit_Adventurers_2.0_FREE/Characters/fbx/Barbarian.fbx', (object) => { npcBarbarian = object; checkDone(); }, undefined, (err) => { console.error("Failed to load barbarian fbx", err); checkDone(); });
                 fbxLoader.load('./KayKit_Adventurers_2.0_FREE/Characters/fbx/Mage.fbx', (object) => { npcMage = object; checkDone(); }, undefined, (err) => { console.error("Failed to load mage fbx", err); checkDone(); });
                 fbxLoader.load('./KayKit_Adventurers_2.0_FREE/Characters/fbx/Knight.fbx', (object) => { npcKnight = object; checkDone(); }, undefined, (err) => { console.error("Failed to load knight fbx", err); checkDone(); });
-                
-                fbxLoader.load('./KayKit_Character_Animations_1.1/Animations/fbx/Rig_Medium/Rig_Medium_General.fbx', (object) => { 
+                fbxLoader.load('./madhav_sprite/Meshy_AI_Winged_Monarch_of_the_0507014236_texture.fbx', (object) => { npcMadhav = object; checkDone(); }, undefined, (err) => { console.error("Failed to load madhav fbx", err); checkDone(); });
+
+                fbxLoader.load('./KayKit_Character_Animations_1.1/Animations/fbx/Rig_Medium/Rig_Medium_General.fbx', (object) => {
                     if (object.animations && object.animations.length > 0) {
                         npcIdleAnim = object.animations.find(a => a.name.toLowerCase().includes('idle')) || object.animations[0];
                     }
-                    checkDone(); 
+                    checkDone();
                 }, undefined, (err) => { console.error("Failed to load npc idle anim", err); checkDone(); });
 
                 // Warden of Distance
@@ -948,6 +1583,16 @@
                 fbxLoader.load('./bosses/mirror_boss/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Running_withSkin.fbx', (anim) => { mirrorRunAnim = anim.animations[0]; checkDone(); }, undefined, (err) => { console.error("Failed to load mirror run", err); checkDone(); });
                 fbxLoader.load('./bosses/mirror_boss/Meshy_AI_Obsidian_Knight_of_th_biped_Animation_Walking_withSkin.fbx', (anim) => { mirrorWalkAnim = anim.animations[0]; checkDone(); }, undefined, (err) => { console.error("Failed to load mirror walk", err); checkDone(); });
                 fbxLoader.load('./bosses/mirror_boss/mirror_sword/Meshy_AI_Cruciform_Longsword_0503235835_texture.fbx', (sword) => { loadedMirrorSword = sword; checkDone(); }, undefined, (err) => { console.error("Failed to load mirror sword", err); checkDone(); });
+
+                // Normal enemies
+                fbxLoader.load('./enemies/Meshy_AI_forest_imps_that_look_0504063101_texture_fbx/Meshy_AI_forest_imps_that_look_0504063101_texture_fbx/Meshy_AI_forest_imps_that_look_0504063101_texture.fbx', (object) => { loadedForestImp = object; checkDone(); }, undefined, (err) => { console.error("Failed to load forest imp", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_corrupted_deer_0504063129_texture_fbx/Meshy_AI_corrupted_deer_0504063129_texture_fbx/Meshy_AI_corrupted_deer_0504063129_texture.fbx', (object) => { loadedCorruptedDeer = object; checkDone(); }, undefined, (err) => { console.error("Failed to load corrupted deer", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_water_shade_enemy_0504063212_texture_fbx/Meshy_AI_water_shade_enemy_0504063212_texture_fbx/Meshy_AI_water_shade_enemy_0504063212_texture.fbx', (object) => { loadedWaterShade = object; checkDone(); }, undefined, (err) => { console.error("Failed to load water shade", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_dungeon_crawler_dog_w_0504063232_texture_fbx/Meshy_AI_dungeon_crawler_dog_w_0504063232_texture_fbx/Meshy_AI_dungeon_crawler_dog_w_0504063232_texture.fbx', (object) => { loadedDungeonCrawler = object; checkDone(); }, undefined, (err) => { console.error("Failed to load dungeon crawler", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_lava_golem_scary_0504063304_texture_fbx/Meshy_AI_lava_golem_scary_0504063304_texture_fbx/Meshy_AI_lava_golem_scary_0504063304_texture.fbx', (object) => { loadedLavaGolem = object; checkDone(); }, undefined, (err) => { console.error("Failed to load lava golem", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_lost_damagedhurt_and__0504063245_texture_fbx/Meshy_AI_lost_damagedhurt_and__0504063245_texture_fbx/Meshy_AI_lost_damagedhurt_and__0504063245_texture.fbx', (object) => { loadedScorchedKnight = object; checkDone(); }, undefined, (err) => { console.error("Failed to load scorched knight", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_shadow_knight_demonic_0504063401_texture_fbx/Meshy_AI_shadow_knight_demonic_0504063401_texture_fbx/Meshy_AI_shadow_knight_demonic_0504063401_texture.fbx', (object) => { loadedShadowKnight = object; checkDone(); }, undefined, (err) => { console.error("Failed to load shadow knight", err); checkDone(); });
+                fbxLoader.load('./enemies/Meshy_AI_corrupted_familiar_da_0504063345_texture_fbx/Meshy_AI_corrupted_familiar_da_0504063345_texture_fbx/Meshy_AI_corrupted_familiar_da_0504063345_texture.fbx', (object) => { loadedCorruptedFamiliar = object; checkDone(); }, undefined, (err) => { console.error("Failed to load corrupted familiar", err); checkDone(); });
             });
         }
 
@@ -955,198 +1600,320 @@
             await loadAssets();
 
             // --- CHAPTER 1: Verdant Vale ---
-        plane(200, 200, forestMat, 0, -0.1, -75, -Math.PI/2);
-        plane(3, 3, new THREE.MeshStandardMaterial({color: 0xaa4444}), 2, 0.01, 8, -Math.PI/2); 
-        
-        const forestPaths =[
-            {x1:0,z1:15, x2:0,z2:-20}, {x1:0,z1:-20, x2:-40,z2:-20}, {x1:-40,z1:-20, x2:-40,z2:-80}, 
-            {x1:-40,z1:-80, x2:30,z2:-80}, {x1:30,z1:-80, x2:30,z2:-120}, {x1:30,z1:-120, x2:0,z2:-120}, {x1:0,z1:-120, x2:0,z2:-160},
-            {x1:0,z1:-20, x2:40,z2:-20}, {x1:40,z1:-20, x2:40,z2:0}, {x1:40,z1:0, x2:60,z2:0}, 
-            {x1:-40,z1:-50, x2:-65,z2:-50}, {x1:-65,z1:-50, x2:-65,z2:-25},
-            {x1:30,z1:-100, x2:55,z2:-100}, {x1:55,z1:-100, x2:55,z2:-130}
-        ];
-        addPathLines(forestPaths);
-        forestPaths.forEach(seg => { let steps = Math.hypot(seg.x2-seg.x1, seg.z2-seg.z1) * 1.5; for(let j=0; j<=steps; j++) { let cx = seg.x1 + (j/steps)*(seg.x2-seg.x1); let cz = seg.z1 + (j/steps)*(seg.z2-seg.z1); if (j%2===0) { plane(4+Math.random()*2, 4+Math.random()*2, dirtMat, cx+(Math.random()-0.5), 0.01, cz+(Math.random()-0.5), -Math.PI/2).rotation.z = Math.random(); } } });
-        
-        const tGeo = new THREE.ConeGeometry(1.8, 8, 5); const trGeo = new THREE.CylinderGeometry(0.5, 0.6, 6, 5);
-        const tMat = new THREE.MeshStandardMaterial({color: 0x122412, roughness: 0.9}); const trMat = new THREE.MeshStandardMaterial({color: 0x221111});
-        
-        const treeInsts = [];
-        if (loadedTreeMeshes.length > 0) {
-            for (let tm of loadedTreeMeshes) {
-                let inst = new THREE.InstancedMesh(tm.geo, tm.mat, 4000);
+            plane(300, 300, forestMat, 0, -0.1, -125, -Math.PI / 2);
+            plane(3, 3, new THREE.MeshStandardMaterial({ color: 0xaa4444 }), 2, 0.01, 8, -Math.PI / 2);
+
+            const forestPaths = [
+                // Core original paths
+                { x1: 0, z1: 15, x2: 0, z2: -20 }, { x1: 0, z1: -20, x2: -40, z2: -20 }, { x1: -40, z1: -20, x2: -40, z2: -80 },
+                { x1: -40, z1: -80, x2: 30, z2: -80 }, { x1: 30, z1: -80, x2: 30, z2: -120 }, { x1: 30, z1: -120, x2: 0, z2: -120 }, { x1: 0, z1: -120, x2: 0, z2: -160 },
+                { x1: 0, z1: -20, x2: 40, z2: -20 }, { x1: 40, z1: -20, x2: 40, z2: 0 }, { x1: 40, z1: 0, x2: 60, z2: 0 },
+                { x1: -40, z1: -50, x2: -65, z2: -50 }, { x1: -65, z1: -50, x2: -65, z2: -25 },
+                { x1: 30, z1: -100, x2: 55, z2: -100 }, { x1: 55, z1: -100, x2: 55, z2: -130 },
+                // Added diagonal and deep side paths
+                { x1: -40, z1: -20, x2: -20, z2: -40 }, { x1: -20, z1: -40, x2: -20, z2: -60 }, { x1: -20, z1: -60, x2: -40, z2: -80 },
+                { x1: -65, z1: -25, x2: -80, z2: -10 }, { x1: -80, z1: -10, x2: -80, z2: 10 },
+                { x1: 40, z1: 0, x2: 60, z2: 20 }, { x1: 60, z1: 20, x2: 80, z2: 20 },
+                { x1: 30, z1: -80, x2: 50, z2: -60 }, { x1: 50, z1: -60, x2: 70, z2: -60 },
+                { x1: 0, z1: -120, x2: -30, z2: -140 }, { x1: -30, z1: -140, x2: -30, z2: -160 },
+                // New Extension
+                { x1: -30, z1: -160, x2: 0, z2: -180 }, { x1: 0, z1: -180, x2: 0, z2: -210 },
+                { x1: 0, z1: -210, x2: 60, z2: -210 }, { x1: 60, z1: -210, x2: 80, z2: -230 },
+                { x1: 80, z1: -230, x2: 80, z2: -250 }, { x1: 80, z1: -250, x2: 0, z2: -250 }
+            ];
+            addPathLines(forestPaths);
+            forestPaths.forEach(seg => { let steps = Math.hypot(seg.x2 - seg.x1, seg.z2 - seg.z1) * 1.5; for (let j = 0; j <= steps; j++) { let cx = seg.x1 + (j / steps) * (seg.x2 - seg.x1); let cz = seg.z1 + (j / steps) * (seg.z2 - seg.z1); if (j % 2 === 0) { plane(4 + Math.random() * 2, 4 + Math.random() * 2, dirtMat, cx + (Math.random() - 0.5), 0.01, cz + (Math.random() - 0.5), -Math.PI / 2).rotation.z = Math.random(); } } });
+
+            const tGeo = new THREE.ConeGeometry(1.8, 8, 5); const trGeo = new THREE.CylinderGeometry(0.5, 0.6, 6, 5);
+            const tMat = new THREE.MeshStandardMaterial({ color: 0x122412, roughness: 0.9 }); const trMat = new THREE.MeshStandardMaterial({ color: 0x221111 });
+
+            const treeInsts = [];
+            if (loadedTreeMeshes.length > 0) {
+                for (let tm of loadedTreeMeshes) {
+                    let inst = new THREE.InstancedMesh(tm.geo, tm.mat, 4000);
+                    inst.castShadow = true;
+                    scene.add(inst);
+                    treeInsts.push({ inst: inst, tm: tm });
+                }
+            } else {
+                let inst = new THREE.InstancedMesh(tGeo, tMat, 4000);
                 inst.castShadow = true;
                 scene.add(inst);
-                treeInsts.push({ inst: inst, tm: tm });
+                treeInsts.push({ inst: inst, tm: null });
             }
-        } else {
-            let inst = new THREE.InstancedMesh(tGeo, tMat, 4000);
-            inst.castShadow = true;
-            scene.add(inst);
-            treeInsts.push({ inst: inst, tm: null });
-        }
 
-        let tCount = 0; const tmpM = new THREE.Matrix4(); const tmpM2 = new THREE.Matrix4();
-        for (let i=0; i<3000; i++) {
-            let rx = (Math.random()-0.5)*160; let rz = 15 - Math.random()*180;
-            let minD = Infinity; for(let seg of forestPaths) { let res = getSegmentDistSq({x:rx, z:rz}, {x:seg.x1, z:seg.z1}, {x:seg.x2, z:seg.z2}); if (res.distSq < minD) minD = res.distSq; }
-            if (minD > 25) { 
-                const s = 0.8 + Math.random()*0.6; 
-                
-                // Add decoration chance
-                let isDecor = Math.random() < 0.4;
-                if (isDecor) {
-                    let r = Math.random();
-                    if (r < 0.2) spawnDecor(loadedRock, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    else if (r < 0.4) spawnDecor(loadedRock2, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    else if (r < 0.6) spawnDecor(loadedRock3, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    else if (r < 0.75) spawnDecor(loadedBush, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    else if (r < 0.9) spawnDecor(loadedBush2, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    else spawnDecor(loadedBush3, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
-                    continue; // Skip tree rendering
-                }
+            let tCount = 0; const tmpM = new THREE.Matrix4(); const tmpM2 = new THREE.Matrix4();
+            for (let i = 0; i < 4500; i++) {
+                let rx = (Math.random() - 0.5) * 260; let rz = 15 - Math.random() * 280;
+                let minD = Infinity; for (let seg of forestPaths) { let res = getSegmentDistSq({ x: rx, z: rz }, { x: seg.x1, z: seg.z1 }, { x: seg.x2, z: seg.z2 }); if (res.distSq < minD) minD = res.distSq; }
+                if (minD > 25) {
+                    const s = 0.8 + Math.random() * 0.6;
 
-                if (loadedTreeMeshes.length > 0) {
-                    for (let ti of treeInsts) {
-                        tmpM.makeTranslation(rx, 0, rz);
-                        tmpM.scale(new THREE.Vector3(s*1.5, s*1.5, s*1.5)); // Increased tree scale
-                        
-                        tmpM2.makeRotationFromEuler(ti.tm.rot);
-                        tmpM2.setPosition(ti.tm.pos);
-                        tmpM2.scale(ti.tm.scale);
-                        
-                        tmpM.multiply(tmpM2);
-                        
-                        ti.inst.setMatrixAt(tCount, tmpM);
+                    // Add decoration chance
+                    let isDecor = Math.random() < 0.4;
+                    if (isDecor) {
+                        let r = Math.random();
+                        if (r < 0.2) spawnDecor(loadedRock, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        else if (r < 0.4) spawnDecor(loadedRock2, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        else if (r < 0.6) spawnDecor(loadedRock3, rx, 0.2, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        else if (r < 0.75) spawnDecor(loadedBush, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        else if (r < 0.9) spawnDecor(loadedBush2, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        else spawnDecor(loadedBush3, rx, 0, rz, s * 4.0, Math.random() * Math.PI * 2);
+                        continue; // Skip tree rendering
                     }
-                    let wBox = 1.5*s; let hBox = 6*s;
-                    let mBox = new THREE.Mesh(new THREE.BoxGeometry(wBox, hBox, wBox), new THREE.MeshBasicMaterial({visible: false}));
-                    mBox.position.set(rx, 3*s, rz);
-                    wallColliders.add(mBox);
-                    collidersAABB.push({minX: rx - wBox/2, maxX: rx + wBox/2, minZ: rz - wBox/2, maxZ: rz + wBox/2});
-                } else {
-                    tmpM.makeTranslation(rx, 4.5*s, rz); tmpM.scale(new THREE.Vector3(s,s,s)); 
-                    treeInsts[0].inst.setMatrixAt(tCount, tmpM); 
-                    box(1.5*s, 6*s, 1.5*s, trMat, rx, 3*s, rz, wallColliders, true); 
-                }
-                tCount++; if (tCount >= 4000) break; 
-            }
-        }
-        for (let ti of treeInsts) ti.inst.count = tCount;
 
-        spawnNPC("Perrin", 'ranger', 0, 2, Math.PI, "I saw what happened... Follow the path. Explore the branches. You might find items to boost your power.");
-        spawnEnemy('forestImp', 0, -10); spawnEnemy('forestImp', 35, -20); spawnItem('atk', 'small', 60, 0); 
-        spawnEnemy('corruptedDeer', -50, -50); spawnItem('def', 'small', -65, -25); spawnEnemy('corruptedDeer', -30, -55); 
-        spawnEnemy('forestImp', 40, -100); spawnItem('health', 'small', 55, -130); spawnCampfire(0, -80); spawnEnemy('wardenOfDistance', 0, -145);
+                    if (loadedTreeMeshes.length > 0) {
+                        for (let ti of treeInsts) {
+                            tmpM.makeTranslation(rx, 0, rz);
+                            tmpM.scale(new THREE.Vector3(s * 1.5, s * 1.5, s * 1.5)); // Increased tree scale
 
-        // --- CHAPTER 2: Drowned Dungeon ---
-        plane(200, 250, waterMat, 0, -0.05, -285, -Math.PI/2);
-        buildRoom(0, -170, 6, 20, dungeonWallMat, dungeonFloorMat, {N:4, S:4}); 
-        buildRoom(0, -200, 30, 40, dungeonWallMat, dungeonFloorMat, {N:8, S:4, E:6, W:6}); 
-        buildRoom(25, -200, 20, 6, dungeonWallMat, dungeonFloorMat, {W:6, E:4}); 
-        buildRoom(45, -200, 20, 20, dungeonWallMat, dungeonFloorMat, {W:4}); 
-        buildRoom(-25, -200, 20, 6, dungeonWallMat, dungeonFloorMat, {E:6, W:4}); 
-        buildRoom(-45, -200, 20, 20, dungeonWallMat, dungeonFloorMat, {E:4}); 
-        buildRoom(0, -240, 6, 40, dungeonWallMat, dungeonFloorMat, {N:6, S:8}); 
-        buildRoom(0, -280, 40, 40, dungeonWallMat, dungeonFloorMat, {N:8, S:6}); 
-        buildRoom(0, -320, 8, 40, dungeonWallMat, dungeonFloorMat, {N:10, S:8}); 
-        buildRoom(0, -370, 50, 60, dungeonWallMat, dungeonFloorMat, {S:10, N:10}); 
+                            tmpM2.makeRotationFromEuler(ti.tm.rot);
+                            tmpM2.setPosition(ti.tm.pos);
+                            tmpM2.scale(ti.tm.scale);
 
-        spawnLetter(0, -170, `Letter 1: I left a piece of my heart on the path. Don't rush.`);
-        spawnEnemy('waterShade', 10, -200); spawnEnemy('waterShade', 30, -200); spawnItem('atk', 'medium', 45, -200); 
-        spawnNPC("Willa", 'rogue', -45, -200, Math.PI/2, "I've lived down here twenty years. Take this.", true); spawnItem('def', 'small', -55, -200); 
-        spawnEnemy('dungeonCrawler', 0, -260); spawnCampfire(0, -250); spawnEnemy('tideOfDoubt', 0, -345);
+                            tmpM.multiply(tmpM2);
 
-        // --- CHAPTER 3: Ashen Wastes ---
-        plane(200, 200, ashMat, 0, 0, -480, -Math.PI/2);
-        const ashPaths =[
-            {x1:0,z1:-400, x2:0,z2:-440}, {x1:0,z1:-440, x2:-50,z2:-440}, {x1:-50,z1:-440, x2:-50,z2:-510},
-            {x1:-50,z1:-510, x2:40,z2:-510}, {x1:40,z1:-510, x2:40,z2:-560}, {x1:40,z1:-560, x2:0,z2:-560}, {x1:0,z1:-560, x2:0,z2:-590},
-            {x1:0,z1:-440, x2:40,z2:-440}, {x1:40,z1:-440, x2:40,z2:-410}, 
-            {x1:-50,z1:-470, x2:-75,z2:-470}, {x1:40,z1:-530, x2:65,z2:-530}
-        ];
-        addPathLines(ashPaths);
-        ashPaths.forEach(seg => { let steps = Math.hypot(seg.x2-seg.x1, seg.z2-seg.z1); for(let j=0; j<=steps; j++){ let cx = seg.x1 + (j/steps)*(seg.x2-seg.x1); let cz = seg.z1 + (j/steps)*(seg.z2-seg.z1); plane(7, 7, rockMat, cx, 0.02, cz, -Math.PI/2).rotation.z = Math.random(); } });
-        for(let i=0; i<800; i++) {
-            let x = (Math.random()-0.5)*180; let z = -400 - Math.random()*200; let minD = Infinity;
-            for(let seg of ashPaths) { let res = getSegmentDistSq({x:x, z:z}, {x:seg.x1, z:seg.z1}, {x:seg.x2, z:seg.z2}); if (res.distSq < minD) minD = res.distSq; }
-            if (minD > 36) { 
-                if (Math.random() > 0.6) {
-                    plane(10, 10, lavaMat, x, 0.01, z, -Math.PI/2).rotation.z = Math.random(); 
-                } else { 
-                    const r = box(3, 6+Math.random()*8, 3, rockMat, x, 3, z, wallColliders, true); 
-                    r.rotation.set((Math.random()-0.5)*1.5, Math.random()*Math.PI*2, (Math.random()-0.5)*1.5);
-                } 
-            }
-        }
-
-        spawnLetter(-5, -420, `Letter 2: It's getting hotter here. I am not afraid.`);
-        spawnEnemy('lavaGolem', -15, -440); spawnEnemy('lavaGolem', 30, -440); spawnItem('atk', 'medium', 40, -410); 
-        spawnEnemy('scorchedKnight', -35, -480); spawnItem('def', 'medium', -75, -470); 
-        spawnNPC("Old Bram", 'barbarian', 20, -510, -Math.PI/2, "Everyone I loved burned with this place. Don't you dare stop walking.", true);
-        spawnEnemy('scorchedKnight', 50, -530); spawnItem('health', 'medium', 65, -530); spawnCampfire(-5, -510); spawnEnemy('emberOfAnger', 0, -575);
-
-        // --- CHAPTER 4: Shadow Spires ---
-        plane(200, 200, spireFloorMat, 0, 0, -690, -Math.PI/2);
-        const spirePaths =[
-            {x1:0,z1:-590, x2:0,z2:-650}, {x1:0,z1:-650, x2:45,z2:-650}, {x1:45,z1:-650, x2:45,z2:-730},
-            {x1:45,z1:-730, x2:-35,z2:-730}, {x1:-35,z1:-730, x2:-35,z2:-770}, {x1:-35,z1:-770, x2:0,z2:-770}, {x1:0,z1:-770, x2:0,z2:-790},
-            {x1:0,z1:-650, x2:-40,z2:-650}, {x1:-40,z1:-650, x2:-40,z2:-620}, {x1:45,z1:-690, x2:70,z2:-690}, {x1:-35,z1:-750, x2:-60,z2:-750}
-        ];
-        addPathLines(spirePaths);
-        spirePaths.forEach(seg => { let steps = Math.hypot(seg.x2-seg.x1, seg.z2-seg.z1); for(let j=0; j<=steps; j+=3){ let cx = seg.x1 + (j/steps)*(seg.x2-seg.x1); let cz = seg.z1 + (j/steps)*(seg.z2-seg.z1); plane(8, 4, rockMat, cx, 0.01, cz, -Math.PI/2).rotation.z = Math.random(); } });
-        for(let i=0; i<1200; i++) {
-            let x = (Math.random()-0.5)*180; let z = -590 - Math.random()*200; let minD = Infinity;
-            for(let seg of spirePaths) { let res = getSegmentDistSq({x:x, z:z}, {x:seg.x1, z:seg.z1}, {x:seg.x2, z:seg.z2}); if (res.distSq < minD) minD = res.distSq; }
-            if (minD > 25) { 
-                const s = box(3, 40 + Math.random()*20, 3, spireMat, x, 20, z, wallColliders, true); 
-                s.rotation.z = (Math.random() - 0.5) * 0.2; s.rotation.x = (Math.random() - 0.5) * 0.2; 
-            } else if (minD > 6) {
-                if (Math.random() > 0.95) {
-                    let r = Math.random();
-                    let yOff = 0.02;
-                    if (r < 0.3) spawnDecor(loadedBarrel, x, yOff, z, 1.2, Math.random()*Math.PI*2);
-                    else if (r < 0.6) spawnDecor(loadedCrate, x, yOff, z, 1.2, Math.random()*Math.PI*2);
-                    else spawnDecor(loadedDarkCrate, x, yOff, z, 1.2, Math.random()*Math.PI*2);
+                            ti.inst.setMatrixAt(tCount, tmpM);
+                        }
+                        let wBox = 1.5 * s; let hBox = 6 * s;
+                        let mBox = new THREE.Mesh(new THREE.BoxGeometry(wBox, hBox, wBox), new THREE.MeshBasicMaterial({ visible: false }));
+                        mBox.position.set(rx, 3 * s, rz);
+                        wallColliders.add(mBox);
+                        collidersAABB.push({ minX: rx - wBox / 2, maxX: rx + wBox / 2, minZ: rz - wBox / 2, maxZ: rz + wBox / 2 });
+                    } else {
+                        tmpM.makeTranslation(rx, 4.5 * s, rz); tmpM.scale(new THREE.Vector3(s, s, s));
+                        treeInsts[0].inst.setMatrixAt(tCount, tmpM);
+                        box(1.5 * s, 6 * s, 1.5 * s, trMat, rx, 3 * s, rz, wallColliders, true);
+                    }
+                    tCount++; if (tCount >= 4000) break;
                 }
             }
-        }
+            for (let ti of treeInsts) ti.inst.count = tCount;
 
-        spawnEnemy('shadowKnight', 0, -620); spawnEnemy('shadowKnight', -20, -650); spawnItem('atk', 'large', -40, -620); 
-        spawnNPC("Sable", 'mage', 45, -660, 0, "He fears people who refuse to stop loving each other. Take this.", true);
-        spawnEnemy('shadowKnight', 55, -690); spawnItem('def', 'medium', 70, -690); spawnEnemy('shadowKnight', 0, -730); 
-        spawnEnemy('shadowKnight', -45, -750); spawnItem('health', 'large', -60, -750); spawnCampfire(-35, -750); spawnEnemy('mirrorOfFear', 0, -775);
+            spawnNPC("Perrin", 'ranger', 0, 2, Math.PI * 2, "I saw what happened to the princess. You MUST GO SAVE HIM. HURRY!", false, 0, 0.5);
+            spawnEnemy('forestImp', 0, -10); spawnEnemy('forestImp', 35, -20); spawnItem('atk', 'small', 60, 0);
+            spawnEnemy('corruptedDeer', -50, -50); spawnItem('def', 'small', -65, -25); spawnEnemy('corruptedDeer', -30, -55);
+            spawnEnemy('forestImp', 40, -100); spawnItem('health', 'small', 55, -130); spawnCampfire(0, -80);
+            spawnEnemy('forestImp', -20, -40); spawnEnemy('corruptedDeer', -20, -60);
+            spawnEnemy('forestImp', -75, -15); spawnEnemy('corruptedDeer', -80, 0); spawnItem('health', 'small', -80, 10);
+            spawnEnemy('forestImp', 50, 10); spawnEnemy('corruptedDeer', 70, 20); spawnItem('atk', 'small', 80, 20);
+            spawnEnemy('corruptedDeer', 40, -60); spawnEnemy('forestImp', 60, -60); spawnItem('def', 'small', 70, -60);
+            spawnEnemy('forestImp', 10, -100); spawnEnemy('corruptedDeer', 15, -110);
+            spawnEnemy('corruptedDeer', -15, -130); spawnEnemy('forestImp', -30, -150); spawnItem('health', 'small', -30, -160);
 
-        // --- CHAPTER 5: The Castle ---
-        plane(200, 200, castleFloorMat, 0, 0, -890, -Math.PI/2);
-        buildRoom(0, -810, 20, 40, pillarMat, castleFloorMat, {N:10, S:4}); 
-        buildRoom(0, -860, 50, 60, pillarMat, castleFloorMat, {N:12, S:10, E:8, W:8}); 
-        buildRoom(35, -860, 20, 20, pillarMat, castleFloorMat, {W:8}); 
-        buildRoom(-35, -860, 20, 20, pillarMat, castleFloorMat, {E:8}); 
-        buildRoom(0, -920, 16, 60, pillarMat, castleFloorMat, {N:14, S:12}); 
-        buildRoom(0, -990, 60, 80, pillarMat, castleFloorMat, {S:14, N:14}); 
-        
-        for(let z=-790; z>-990; z-=10) { plane(6, 10, new THREE.MeshStandardMaterial({color: 0x660000}), 0, 0.02, z, -Math.PI/2); }
+            spawnEnemy('forestImp', -15, -170); spawnEnemy('corruptedDeer', 0, -190);
+            spawnCampfire(0, -210);
+            spawnEnemy('forestImp', 40, -210); spawnItem('atk', 'medium', 70, -220);
 
-        spawnNPC("The Handmaiden", 'knight', -6, -810, Math.PI, "She left something for you at the top of the stairs. She always knew.", true);
-        spawnEnemy('corruptedFamiliar', 0, -830); spawnItem('atk', 'large', 35, -860); spawnItem('def', 'large', -35, -860);
-        spawnEnemy('shadowKnight', 0, -880); spawnEnemy('lavaGolem', 0, -930); spawnCampfire(0, -965); 
-        spawnLetter(0, -975, `Letter 4: This is his throne room. My heart has been yours since the picnic. Break the door down.`);
-        spawnEnemy('theMon', 0, -990); 
+            spawnLetter(73, -223, `HEWO! PLEASE CUM SAVE ME THE MON HAS ME I KNOW YOU CAN DO IT SO PLEASEEE SAVE UR PRINCESS NOM PLEASE`);
+            spawnEnemy('wardenOfDistance', 80, -230);
 
-        // --- THE ENDING STAIRCASE ---
-        safeRects.push({minX: -7, maxX: 7, minZ: -1120, maxZ: -1030}); // Allows walking past the door frame onto stairs
-        const stairMat = new THREE.MeshStandardMaterial({color: 0x333333});
-        const numSteps = 70; const stairDepth = 1.0; const stairHeight = 0.25;
-        for (let i=0; i<numSteps; i++) { box(14, stairHeight, stairDepth, stairMat, 0, i*stairHeight + stairHeight/2, -1030 - (i*stairDepth), scene); } 
-        const topY = numSteps * stairHeight; const topZ = -1030 - (numSteps * stairDepth);
-        plane(20, 20, stairMat, 0, topY, topZ - 10, -Math.PI/2);
-        
-        const doorFrameMat = new THREE.MeshStandardMaterial({color: 0x111111});
-        box(1, 8, 6, doorFrameMat, -3.5, topY+4, topZ-15, wallColliders, true);
-        box(1, 8, 6, doorFrameMat, 3.5, topY+4, topZ-15, wallColliders, true);
-        box(8, 1, 6, doorFrameMat, 0, topY+8.5, topZ-15, wallColliders, true);
-        box(6, 8, 0.5, new THREE.MeshBasicMaterial({color: 0xffffff}), 0, topY+4, topZ-15, scene);
+            // --- CHAPTER 2: Drowned Dungeon ---
+            plane(200, 350, waterMat, 0, -0.05, -400, -Math.PI / 2);
+            buildRoom(0, -260, 6, 20, dungeonWallMat, dungeonFloorMat, { N: 4, S: 4 });
+            buildRoom(0, -290, 30, 40, dungeonWallMat, dungeonFloorMat, { N: 8, S: 4, E: 6, W: 6 });
+            buildRoom(25, -290, 20, 6, dungeonWallMat, dungeonFloorMat, { W: 6, E: 4 });
+            buildRoom(-25, -290, 20, 6, dungeonWallMat, dungeonFloorMat, { E: 6, W: 4 });
+            buildRoom(0, -330, 6, 40, dungeonWallMat, dungeonFloorMat, { N: 6, S: 8 });
+            buildRoom(0, -370, 40, 40, dungeonWallMat, dungeonFloorMat, { N: 8, S: 6 });
+            buildRoom(0, -410, 8, 40, dungeonWallMat, dungeonFloorMat, { N: 10, S: 8 });
+            buildRoom(0, -460, 50, 60, dungeonWallMat, dungeonFloorMat, { S: 10, N: 10 });
+
+            buildRoom(45, -290, 20, 20, dungeonWallMat, dungeonFloorMat, { W: 4, N: 6 });
+            buildRoom(45, -320, 10, 40, dungeonWallMat, dungeonFloorMat, { S: 6, E: 6 });
+            buildRoom(65, -320, 30, 30, dungeonWallMat, dungeonFloorMat, { W: 6 });
+
+            buildRoom(-45, -290, 20, 20, dungeonWallMat, dungeonFloorMat, { E: 4, N: 6 });
+            buildRoom(-45, -320, 10, 40, dungeonWallMat, dungeonFloorMat, { S: 6, W: 6 });
+            buildRoom(-65, -320, 30, 30, dungeonWallMat, dungeonFloorMat, { E: 6 });
+
+            buildRoom(30, -370, 20, 6, dungeonWallMat, dungeonFloorMat, { W: 6, E: 6 });
+            buildRoom(55, -370, 30, 30, dungeonWallMat, dungeonFloorMat, { W: 6 });
+
+            buildRoom(-30, -370, 20, 6, dungeonWallMat, dungeonFloorMat, { E: 6, W: 6 });
+            buildRoom(-55, -370, 30, 30, dungeonWallMat, dungeonFloorMat, { E: 6 });
+
+            // New Extension
+            buildRoom(0, -510, 10, 40, dungeonWallMat, dungeonFloorMat, { N: 10, S: 10, E: 6, W: 6 });
+            buildRoom(25, -510, 40, 30, dungeonWallMat, dungeonFloorMat, { W: 6 });
+            buildRoom(-35, -510, 60, 20, dungeonWallMat, dungeonFloorMat, { E: 6, N: 10 });
+            buildRoom(-35, -540, 40, 40, dungeonWallMat, dungeonFloorMat, { S: 10, E: 10 }); // Boss room West
+            buildRoom(-10, -540, 10, 10, dungeonWallMat, dungeonFloorMat, { W: 10, E: 10 }); // connection
+            buildRoom(0, -540, 10, 20, dungeonWallMat, dungeonFloorMat, { W: 10, S: 10, N: 10 }); // Center link to ash wastes
+            buildRoom(0, -565, 10, 30, dungeonWallMat, dungeonFloorMat, { S: 10, N: 10 }); // Path perfectly merging into Chapter 3
+
+
+            spawnEnemy('waterShade', 10, -290); spawnEnemy('waterShade', 30, -290); spawnItem('atk', 'medium', 45, -290);
+            spawnNPC("Willa", 'rogue', -45, -290, Math.PI / 2, "The Mon flew through here! I saw him. He's TERRIFYING... I wish you the best Nom Knight.", true, 0, 0.5); spawnItem('def', 'small', -55, -290);
+            spawnEnemy('dungeonCrawler', 0, -350); spawnCampfire(0, -340);
+
+            spawnEnemy('waterShade', 45, -310); spawnEnemy('dungeonCrawler', 65, -320); spawnItem('health', 'medium', 65, -310);
+            spawnEnemy('dungeonCrawler', -45, -310); spawnEnemy('waterShade', -65, -320); spawnItem('atk', 'medium', -65, -310);
+            spawnEnemy('waterShade', 40, -370); spawnEnemy('dungeonCrawler', 55, -370); spawnItem('def', 'medium', 65, -370);
+            spawnEnemy('dungeonCrawler', -40, -370); spawnEnemy('waterShade', -55, -370); spawnItem('health', 'small', -65, -370);
+            spawnEnemy('waterShade', 10, -370); spawnEnemy('dungeonCrawler', -10, -370);
+
+            spawnEnemy('waterShade', 0, -460); spawnEnemy('dungeonCrawler', 0, -440);
+            spawnCampfire(0, -500); spawnEnemy('dungeonCrawler', 30, -510); spawnItem('health', 'large', 40, -510);
+
+            spawnLetter(0, -530, `This this place is KINDA SCAWYYY I DONT LIKE IT COME QUICKLY i mega miss ya i wish we could've finished our picnic!`);
+            spawnEnemy('tideOfDoubt', 0, -540);
+
+            // --- CHAPTER 3: Ashen Wastes ---
+            plane(200, 300, ashMat, 0, 0, -700, -Math.PI / 2);
+            const ashPaths = [
+                { x1: 0, z1: -580, x2: 0, z2: -620 }, { x1: 0, z1: -620, x2: -50, z2: -620 }, { x1: -50, z1: -620, x2: -50, z2: -690 },
+                { x1: -50, z1: -690, x2: 40, z2: -690 }, { x1: 40, z1: -690, x2: 40, z2: -740 }, { x1: 40, z1: -740, x2: 0, z2: -740 }, { x1: 0, z1: -740, x2: 0, z2: -770 },
+                { x1: 0, z1: -620, x2: 40, z2: -620 }, { x1: 40, z1: -620, x2: 40, z2: -590 },
+                { x1: -50, z1: -650, x2: -75, z2: -650 }, { x1: 40, z1: -710, x2: 65, z2: -710 },
+                // Added diagonals and deep side paths
+                { x1: 0, z1: -620, x2: -25, z2: -655 }, { x1: -25, z1: -655, x2: -50, z2: -690 },
+                { x1: -75, z1: -650, x2: -90, z2: -635 }, { x1: -90, z1: -635, x2: -90, z2: -610 },
+                { x1: 40, z1: -590, x2: 60, z2: -570 }, { x1: 60, z1: -570, x2: 80, z2: -570 },
+                { x1: 40, z1: -690, x2: 15, z2: -715 }, { x1: 15, z1: -715, x2: 0, z2: -740 },
+                { x1: 65, z1: -710, x2: 80, z2: -725 }, { x1: 80, z1: -725, x2: 80, z2: -750 },
+                // New Extension
+                { x1: 0, z1: -770, x2: -30, z2: -790 }, { x1: -30, z1: -790, x2: -30, z2: -820 },
+                { x1: -30, z1: -820, x2: -70, z2: -820 }, { x1: -70, z1: -820, x2: -90, z2: -840 },
+                { x1: -90, z1: -840, x2: -90, z2: -860 }, { x1: -90, z1: -860, x2: 0, z2: -860 }
+            ];
+            addPathLines(ashPaths);
+            ashPaths.forEach(seg => { let steps = Math.hypot(seg.x2 - seg.x1, seg.z2 - seg.z1); for (let j = 0; j <= steps; j++) { let cx = seg.x1 + (j / steps) * (seg.x2 - seg.x1); let cz = seg.z1 + (j / steps) * (seg.z2 - seg.z1); plane(7, 7, rockMat, cx, 0.02, cz, -Math.PI / 2).rotation.z = Math.random(); } });
+            for (let i = 0; i < 1000; i++) {
+                let x = (Math.random() - 0.5) * 180; let z = -580 - Math.random() * 280; let minD = Infinity;
+                for (let seg of ashPaths) { let res = getSegmentDistSq({ x: x, z: z }, { x: seg.x1, z: seg.z1 }, { x: seg.x2, z: seg.z2 }); if (res.distSq < minD) minD = res.distSq; }
+                if (minD > 36) {
+                    if (Math.random() > 0.6) {
+                        plane(10, 10, lavaMat, x, 0.01, z, -Math.PI / 2).rotation.z = Math.random();
+                    } else {
+                        const r = box(3, 6 + Math.random() * 8, 3, rockMat, x, 3, z, wallColliders, true);
+                        r.rotation.set((Math.random() - 0.5) * 1.5, Math.random() * Math.PI * 2, (Math.random() - 0.5) * 1.5);
+                    }
+                }
+            }
+
+            spawnEnemy('lavaGolem', -15, -620); spawnEnemy('lavaGolem', 30, -620); spawnItem('atk', 'medium', 40, -590);
+            spawnEnemy('scorchedKnight', -35, -660); spawnItem('def', 'medium', -75, -650);
+            spawnNPC("Old Bram", 'barbarian', 20, -690, -Math.PI / 2, "It's real hot down here. I think its because the princess passed by you know he's a hottie. You're really lucky to be his KNIGHT IN SHINING ARMOR!", true, 0, 0.5);
+            spawnEnemy('scorchedKnight', 50, -710); spawnItem('health', 'medium', 65, -710); spawnCampfire(-5, -690);
+
+            spawnEnemy('lavaGolem', -25, -655); spawnEnemy('scorchedKnight', -15, -640);
+            spawnEnemy('scorchedKnight', -85, -640); spawnEnemy('lavaGolem', -90, -620); spawnItem('health', 'medium', -90, -610);
+            spawnEnemy('lavaGolem', 50, -580); spawnEnemy('scorchedKnight', 70, -570); spawnItem('def', 'large', 80, -570);
+            spawnEnemy('scorchedKnight', 20, -710); spawnEnemy('lavaGolem', 10, -725);
+            spawnEnemy('lavaGolem', 75, -720); spawnEnemy('scorchedKnight', 80, -740); spawnItem('atk', 'large', 80, -750);
+
+            spawnCampfire(-30, -805); spawnEnemy('scorchedKnight', -50, -820);
+
+            spawnLetter(-83, -833, `God you've made it so far! Thank you for always fighting for your nom it makes me mega HAPPY SAUCE! JUST A BIT MORE`);
+            spawnEnemy('emberOfAnger', -90, -840);
+
+            // --- CHAPTER 4: Shadow Spires ---
+            plane(200, 300, spireFloorMat, 0, 0, -1000, -Math.PI / 2);
+            const spirePaths = [
+                { x1: 0, z1: -850, x2: 0, z2: -910 }, { x1: 0, z1: -910, x2: 45, z2: -910 }, { x1: 45, z1: -910, x2: 45, z2: -990 },
+                { x1: 45, z1: -990, x2: -35, z2: -990 }, { x1: -35, z1: -990, x2: -35, z2: -1030 }, { x1: -35, z1: -1030, x2: 0, z2: -1030 }, { x1: 0, z1: -1030, x2: 0, z2: -1050 },
+                { x1: 0, z1: -910, x2: -40, z2: -910 }, { x1: -40, z1: -910, x2: -40, z2: -880 }, { x1: 45, z1: -950, x2: 70, z2: -950 }, { x1: -35, z1: -1010, x2: -60, z2: -1010 },
+                // Added diagonals and deep side paths
+                { x1: 0, z1: -910, x2: 20, z2: -930 }, { x1: 20, z1: -930, x2: 45, z2: -950 },
+                { x1: -40, z1: -880, x2: -60, z2: -860 }, { x1: -60, z1: -860, x2: -80, z2: -860 },
+                { x1: 70, z1: -950, x2: 85, z2: -935 }, { x1: 85, z1: -935, x2: 85, z2: -910 },
+                { x1: 45, z1: -990, x2: 10, z2: -1010 }, { x1: 10, z1: -1010, x2: -35, z2: -1010 },
+                { x1: -60, z1: -1010, x2: -80, z2: -990 }, { x1: -80, z1: -990, x2: -80, z2: -970 },
+                // New Extension
+                { x1: 0, z1: -1050, x2: 30, z2: -1080 }, { x1: 30, z1: -1080, x2: 30, z2: -1110 },
+                { x1: 30, z1: -1110, x2: 80, z2: -1110 }, { x1: 80, z1: -1110, x2: 100, z2: -1130 },
+                { x1: 100, z1: -1130, x2: 100, z2: -1150 }, { x1: 100, z1: -1150, x2: 0, z2: -1150 }
+            ];
+            addPathLines(spirePaths);
+            spirePaths.forEach(seg => { let steps = Math.hypot(seg.x2 - seg.x1, seg.z2 - seg.z1); for (let j = 0; j <= steps; j += 3) { let cx = seg.x1 + (j / steps) * (seg.x2 - seg.x1); let cz = seg.z1 + (j / steps) * (seg.z2 - seg.z1); plane(8, 4, rockMat, cx, 0.01, cz, -Math.PI / 2).rotation.z = Math.random(); } });
+            for (let i = 0; i < 1500; i++) {
+                let x = (Math.random() - 0.5) * 180; let z = -850 - Math.random() * 310; let minD = Infinity;
+                for (let seg of spirePaths) { let res = getSegmentDistSq({ x: x, z: z }, { x: seg.x1, z: seg.z1 }, { x: seg.x2, z: seg.z2 }); if (res.distSq < minD) minD = res.distSq; }
+                if (minD > 25) {
+                    const s = box(3, 40 + Math.random() * 20, 3, spireMat, x, 20, z, wallColliders, true);
+                    s.rotation.z = (Math.random() - 0.5) * 0.2; s.rotation.x = (Math.random() - 0.5) * 0.2;
+                } else if (minD > 6) {
+                    if (Math.random() > 0.95) {
+                        let r = Math.random();
+                        let yOff = 0.02;
+                        if (r < 0.3) spawnDecor(loadedBarrel, x, yOff, z, 1.2, Math.random() * Math.PI * 2);
+                        else if (r < 0.6) spawnDecor(loadedCrate, x, yOff, z, 1.2, Math.random() * Math.PI * 2);
+                        else spawnDecor(loadedDarkCrate, x, yOff, z, 1.2, Math.random() * Math.PI * 2);
+                    }
+                }
+            }
+
+            spawnEnemy('shadowKnight', 0, -880); spawnEnemy('shadowKnight', -20, -910); spawnItem('atk', 'large', -40, -880);
+            spawnNPC("Sable", 'mage', 45, -920, 0, "The Mon is terrified of the Nom power. CHANNEL IT TO BEAT HIM UP! The princess is waiting!", true, 0, 0.5);
+            spawnEnemy('shadowKnight', 55, -950); spawnItem('def', 'medium', 70, -950); spawnEnemy('shadowKnight', 0, -990);
+            spawnEnemy('shadowKnight', -45, -1010); spawnItem('health', 'large', -60, -1010); spawnCampfire(-35, -1010);
+
+            spawnEnemy('corruptedFamiliar', 10, -920); spawnEnemy('shadowKnight', 30, -940);
+            spawnEnemy('shadowKnight', -50, -870); spawnEnemy('corruptedFamiliar', -70, -860); spawnItem('health', 'large', -80, -860);
+            spawnEnemy('corruptedFamiliar', 80, -940); spawnEnemy('shadowKnight', 85, -920); spawnItem('atk', 'large', 85, -910);
+            spawnEnemy('shadowKnight', 25, -1000); spawnEnemy('corruptedFamiliar', -10, -1010);
+            spawnEnemy('shadowKnight', -70, -1000); spawnEnemy('corruptedFamiliar', -80, -980); spawnItem('def', 'large', -80, -970);
+
+            spawnCampfire(30, -1100); spawnEnemy('shadowKnight', 60, -1110);
+
+            spawnLetter(100, -1130, `This one might be difficult its a copy of yourself nompa. its STILL INFERIOR THO CAUSE NOBODY CAN COPY NOM. SHOW EM WHO NOM REALLY IS!`);
+            spawnEnemy('mirrorOfFear', 100, -1140);
+
+            // --- CHAPTER 5: The Castle ---
+            plane(200, 300, castleFloorMat, 0, 0, -1300, -Math.PI / 2);
+            buildRoom(0, -1170, 20, 40, pillarMat, castleFloorMat, { N: 10, S: 4 });
+            buildRoom(0, -1220, 50, 60, pillarMat, castleFloorMat, { N: 12, S: 10, E: 8, W: 8 });
+            buildRoom(0, -1280, 16, 60, pillarMat, castleFloorMat, { N: 14, S: 12, E: 6, W: 6 });
+            buildRoom(0, -1350, 60, 80, pillarMat, castleFloorMat, { S: 14, N: 14 });
+
+            buildRoom(35, -1220, 20, 20, pillarMat, castleFloorMat, { W: 8, N: 6 });
+            buildRoom(35, -1250, 20, 40, pillarMat, castleFloorMat, { S: 6 });
+
+            buildRoom(-35, -1220, 20, 20, pillarMat, castleFloorMat, { E: 8, N: 6 });
+            buildRoom(-35, -1250, 20, 40, pillarMat, castleFloorMat, { S: 6 });
+
+            buildRoom(25, -1280, 30, 20, pillarMat, castleFloorMat, { W: 6 });
+            buildRoom(-25, -1280, 30, 20, pillarMat, castleFloorMat, { E: 6 });
+
+            // New Extension
+            buildRoom(0, -1410, 10, 40, pillarMat, castleFloorMat, { N: 10, S: 14, W: 6 });
+            buildRoom(-35, -1410, 60, 20, pillarMat, castleFloorMat, { E: 6, N: 10 }); // Hallway West
+            buildRoom(-35, -1450, 60, 60, pillarMat, castleFloorMat, { S: 10, E: 10 }); // Throne Room West
+            buildRoom(0, -1450, 10, 40, pillarMat, castleFloorMat, { W: 10, S: 10, N: 10 }); // Center link to stairs
+
+            for (let z = -1150; z > -1460; z -= 10) { plane(6, 10, new THREE.MeshStandardMaterial({ color: 0x660000 }), 0, 0.02, z, -Math.PI / 2); }
+
+            spawnNPC("The Handmaiden", 'knight', -6, -1170, Math.PI * 2, "YOU'RE ALMOST THERE. You can do it. If anyone can its the NOM KNIGHT", true, 0, 0.5);
+            spawnEnemy('corruptedFamiliar', 0, -1190); spawnItem('atk', 'large', 35, -1220); spawnItem('def', 'large', -35, -1220);
+            spawnEnemy('shadowKnight', 0, -1240); spawnEnemy('lavaGolem', 0, -1290); spawnCampfire(0, -1325);
+
+            spawnEnemy('shadowKnight', 35, -1240); spawnEnemy('lavaGolem', 35, -1260); spawnItem('health', 'large', 35, -1265);
+            spawnEnemy('corruptedFamiliar', -35, -1240); spawnEnemy('lavaGolem', -35, -1260); spawnItem('def', 'large', -35, -1265);
+            spawnEnemy('shadowKnight', 25, -1280); spawnEnemy('corruptedFamiliar', 35, -1280); spawnItem('atk', 'large', 35, -1280);
+            spawnEnemy('shadowKnight', -25, -1280); spawnEnemy('corruptedFamiliar', -35, -1280); spawnItem('health', 'large', -35, -1280);
+            spawnEnemy('lavaGolem', 0, -1260); spawnEnemy('shadowKnight', 0, -1300);
+
+            spawnEnemy('shadowKnight', 0, -1380); spawnCampfire(0, -1410); spawnEnemy('corruptedFamiliar', -30, -1410);
+
+            spawnLetter(0, -1440, `ITS THE MON BEAT HIM UP IM JUST A LITTLE BIT AHEAD BEAT HIM UPPPPPPP PLEASEEEE I LOVE YOU SO MUCH CUM GET ME CUM SAVE MEEEEEEE!`);
+            spawnEnemy('theMon', 0, -1450);
+
+            // --- THE ENDING STAIRCASE ---
+            safeRects.push({ minX: -7, maxX: 7, minZ: -1560, maxZ: -1470 }); // Allows walking past the door frame onto stairs
+            const stairMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const numSteps = 70; const stairDepth = 1.0; const stairHeight = 0.25;
+            for (let i = 0; i < numSteps; i++) { box(14, stairHeight, stairDepth, stairMat, 0, i * stairHeight + stairHeight / 2, -1470 - (i * stairDepth), scene); }
+            const topY = numSteps * stairHeight; const topZ = -1470 - (numSteps * stairDepth);
+            plane(20, 20, stairMat, 0, topY, topZ - 10, -Math.PI / 2);
+
+            const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+            box(1, 8, 6, doorFrameMat, -3.5, topY + 4, topZ - 15, wallColliders, true);
+            box(1, 8, 6, doorFrameMat, 3.5, topY + 4, topZ - 15, wallColliders, true);
+            box(8, 1, 6, doorFrameMat, 0, topY + 8.5, topZ - 15, wallColliders, true);
+            box(6, 8, 0.5, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, topY + 4, topZ - 15, scene);
+
+            spawnNPC("Madhav", 'madhav', 0, topZ - 5, Math.PI * 2, "you MADE IT GOD THANK WU FOR COMING AND SAVING ME IT MAKES ME MEGA HAPPY YOU DID SO AMAZING SAUCE! I LOVE YOU THE MOSTEST BTW EVEN THO U DID ALL THIS I STILL LOVE U MOREEEEE", false, topY);
         }
 
         // ============================================================
@@ -1154,6 +1921,7 @@
         // ============================================================
         const DOM = {
             hudCont: document.getElementById('health-bar-container'), hudHp: document.getElementById('hud-hp-fill'), hudHpT: document.getElementById('health-text'),
+            hudNom: document.getElementById('hud-nom-fill'), hudNomT: document.getElementById('nom-text'),
             hudLvl: document.getElementById('level-text'),
             ui: document.getElementById('pkmn-ui'), menuOverlay: document.getElementById('menu-overlay'),
             eName: document.getElementById('pkmn-enemy-name'), eHp: document.getElementById('pkmn-enemy-hp-fill'),
@@ -1170,17 +1938,21 @@
         };
 
         function showToast(msg) { DOM.toast.textContent = msg; DOM.toast.classList.add('active'); setTimeout(() => DOM.toast.classList.remove('active'), 3000); }
-        function updateHUD() { 
-            DOM.hudHp.style.width = `${(state.hp/state.maxHp)*100}%`; 
-            DOM.hudHpT.textContent = `${Math.max(0,state.hp)} / ${state.maxHp}`; 
-            
-            DOM.hudLvl.textContent = state.level >= state.maxLevel 
-                ? `LVL ${state.level} (MAX)` 
+        function updateHUD() {
+            DOM.hudHp.style.width = `${(state.hp / state.maxHp) * 100}%`;
+            DOM.hudHpT.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`;
+
+            const nomPercent = (state.nomGauge / state.maxNom) * 100;
+            DOM.hudNom.style.width = `${nomPercent}%`;
+            DOM.hudNomT.textContent = `${state.nomGauge} / ${state.maxNom}`;
+
+            DOM.hudLvl.textContent = state.level >= state.maxLevel
+                ? `LVL ${state.level} (MAX)`
                 : `LVL ${state.level} (${state.exp} / ${EXP_REQ[state.level]} EXP)`;
         }
         function writeMsg(txt) { DOM.msg.textContent = txt; }
 
-        function flashScreen(callback, color='#fff') {
+        function flashScreen(callback, color = '#fff') {
             const flash = document.createElement('div');
             flash.style.cssText = `position:absolute; inset:0; background:${color}; z-index:9999; pointer-events:none; transition:opacity 0.15s ease-out; opacity:1;`;
             document.body.appendChild(flash); setTimeout(() => { callback(); flash.style.opacity = '0'; setTimeout(() => flash.remove(), 200); }, 150);
@@ -1191,44 +1963,44 @@
             const vector = new THREE.Vector3();
             // Position above the mesh based on if it is player or enemy
             vector.setFromMatrixPosition(targetMesh.matrixWorld);
-            vector.y += targetMesh === char ? 1.5 : 2.5; 
-            
+            vector.y += targetMesh === char ? 1.5 : 2.5;
+
             // Add a slight random x jitter so back-to-back numbers don't totally overlap
             vector.x += (Math.random() - 0.5) * 1.5;
-            
+
             vector.project(camera);
-            
+
             const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
             const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
-            
+
             const el = document.createElement('div');
             el.className = `floating-text ${type}`;
             el.textContent = text;
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
-            
+
             document.getElementById('game-container').appendChild(el);
             setTimeout(() => el.remove(), 1200);
         }
 
         function getTotalItems() {
             let total = 0;
-            for(let type in state.inventory) { for(let size in state.inventory[type]) { total += state.inventory[type][size]; } }
+            for (let type in state.inventory) { for (let size in state.inventory[type]) { total += state.inventory[type][size]; } }
             return total;
         }
 
         function updateBattleUI() {
-            if(!state.combatEnemy) return; const e = state.combatEnemy;
-            DOM.eName.textContent = e.data.name; 
-            DOM.eHp.style.width = `${(Math.max(0,e.hp)/e.data.maxHp)*100}%`;
+            if (!state.combatEnemy) return; const e = state.combatEnemy;
+            DOM.eName.textContent = e.data.name;
+            DOM.eHp.style.width = `${(Math.max(0, e.hp) / e.data.maxHp) * 100}%`;
             DOM.eHpT.textContent = `${Math.max(0, e.hp)} / ${e.data.maxHp}`;
-            
-            DOM.pHp.style.width = `${(Math.max(0,state.hp)/state.maxHp)*100}%`; 
-            DOM.pHpT.textContent = `${Math.max(0,state.hp)} / ${state.maxHp}`;
-            
+
+            DOM.pHp.style.width = `${(Math.max(0, state.hp) / state.maxHp) * 100}%`;
+            DOM.pHpT.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`;
+
             document.getElementById('pkmn-player-name').textContent = `Lv.${state.level} ${HER_NAME}`;
-            
-            const nomPercent = (state.nomGauge/state.maxNom)*100;
+
+            const nomPercent = (state.nomGauge / state.maxNom) * 100;
             DOM.pNom.style.width = `${nomPercent}%`; DOM.pNom.style.boxShadow = nomPercent >= 100 ? '0 0 10px #ff88a0' : 'none';
             const totalItems = getTotalItems();
             document.getElementById('btn-item-cost').textContent = `${totalItems} in Bag`;
@@ -1240,11 +2012,11 @@
         function enterCombat(enemy) {
             state.gameState = 'TRANSITION'; state.combatEnemy = enemy; document.exitPointerLock(); DOM.hudCont.classList.remove('visible');
             flashScreen(() => {
-                state.gameState = 'COMBAT'; state.combatState = 'player_turn'; state.defending = false; state.nextHitAbsorbed = false; 
+                state.gameState = 'COMBAT'; state.combatState = 'player_turn'; state.defending = false; state.nextHitAbsorbed = 0;
                 state.combatAtkBuff = 0; state.combatDefBuff = 0;
                 state.preCombatPos.copy(char.position); state.preCombatRot = char.rotation.y;
                 char.position.set(-5.5, 1000, 5); char.rotation.y = Math.PI * 0.75;
-                enemy.mesh.position.set(7.5, 1000, 0.5); enemy.mesh.rotation.y = Math.PI * 3/4;
+                enemy.mesh.position.set(7.5, 1000, 0.5); enemy.mesh.rotation.y = Math.PI * 3 / 4;
                 if (enemy.type === 'wardenOfDistance') {
                     enemy.mesh.position.set(2.5, 1000, 2.2);
                     enemy.mesh.scale.set(0.75, 0.75, 0.75);
@@ -1285,15 +2057,30 @@
                         action.play();
                         enemy.activeAction = action;
                     }
+                } else if (enemy.type === 'mirrorOfFear') {
+                    enemy.mesh.position.set(2.5, 1000, 2.2);
+                    enemy.mesh.scale.set(0.75, 0.75, 0.75);
+                    enemy.mesh.rotation.y = -Math.PI / 4;
+                    if (mirrorIdleAnim && enemy.activeAction) {
+                        let action = enemy.mixer.clipAction(mirrorIdleAnim);
+                        enemy.activeAction.crossFadeTo(action, 0.5, false);
+                        action.play();
+                        enemy.activeAction = action;
+                    }
+                } else {
+                    // Normal enemies face the player in combat
+                    const dx = char.position.x - enemy.mesh.position.x;
+                    const dz = char.position.z - enemy.mesh.position.z;
+                    enemy.mesh.rotation.y = Math.atan2(dx, dz);
                 }
-                
+
                 let z = state.preCombatPos.z;
                 if (z > -150) battleDisk.material = forestMat;
                 else if (z > -350) battleDisk.material = dungeonFloorMat;
                 else if (z > -500) battleDisk.material = ashMat;
                 else if (z > -650) battleDisk.material = spireFloorMat;
                 else battleDisk.material = castleFloorMat;
-                
+
                 state.camSmoothPos.set(-5.5, 1001.5, 7); state.camSmoothLook.set(0, 1001, 0);
                 DOM.ui.classList.add('active'); updateBattleUI(); writeMsg(`A wild ${enemy.data.name} appeared!`);
             });
@@ -1303,8 +2090,8 @@
             state.gameState = 'TRANSITION'; DOM.ui.classList.remove('active'); DOM.spellMenu.classList.remove('open');
             flashScreen(() => {
                 char.position.copy(state.preCombatPos); char.rotation.y = state.preCombatRot;
-                if(state.combatEnemy && !state.combatEnemy.defeated) { 
-                    state.combatEnemy.mesh.position.set(state.combatEnemy.startX, 0, state.combatEnemy.startZ); 
+                if (state.combatEnemy && !state.combatEnemy.defeated) {
+                    state.combatEnemy.mesh.position.set(state.combatEnemy.startX, 0, state.combatEnemy.startZ);
                     if (state.combatEnemy.type === 'wardenOfDistance') {
                         state.combatEnemy.mesh.scale.set(1, 1, 1);
                         state.combatEnemy.mesh.rotation.y = 0;
@@ -1341,12 +2128,21 @@
                             action.play();
                             state.combatEnemy.activeAction = action;
                         }
+                    } else if (state.combatEnemy.type === 'mirrorOfFear') {
+                        state.combatEnemy.mesh.scale.set(1, 1, 1);
+                        state.combatEnemy.mesh.rotation.y = 0;
+                        if (mirrorIdleAnim && state.combatEnemy.activeAction) {
+                            let action = state.combatEnemy.mixer.clipAction(mirrorIdleAnim);
+                            state.combatEnemy.activeAction.crossFadeTo(action, 0.5, false);
+                            action.play();
+                            state.combatEnemy.activeAction = action;
+                        }
                     }
                 } else if (state.combatEnemy && state.combatEnemy.defeated) {
                     scene.remove(state.combatEnemy.mesh);
                 }
                 state.combatEnemy = null; updateHUD();
-                if (isFinalBoss) { state.gameState = 'ENDING_RUN'; document.body.requestPointerLock(); state.shakeIntensity = 0.3; DOM.objToast.classList.add('active'); } 
+                if (isFinalBoss) { state.gameState = 'ENDING_RUN'; document.body.requestPointerLock(); state.shakeIntensity = 0.3; DOM.objToast.classList.add('active'); }
                 else { state.gameState = 'EXPLORE'; DOM.hudCont.classList.add('visible'); document.body.requestPointerLock(); }
             }, isFinalBoss ? '#fff' : '#fff');
         }
@@ -1407,74 +2203,74 @@
             }, 300);
         }
 
-        function damageEnemy(dmg, spellName=null) {
+        function damageEnemy(dmg, spellName = null) {
             const e = state.combatEnemy; if (GOD_MODE) dmg = 9999;
-            if (e.data.isFinal && e.phase === 3 && spellName !== 'Nom Burst') { 
-                dmg = Math.min(dmg, Math.max(0, e.hp - 1)); 
-                if(e.hp === 1) writeMsg("The Mon's true form cannot be broken by normal means! Full NOM required."); 
+            if (e.data.isFinal && e.phase === 3 && spellName !== 'Nom Burst') {
+                dmg = Math.min(dmg, Math.max(0, e.hp - 1));
+                if (e.hp === 1) writeMsg("The Mon's true form cannot be broken by normal means! Full NOM required.");
             }
             e.hp -= dmg;
             spawnFloatingText(dmg, e.mesh, 'damage-enemy');
-            
+
             if (e.data.isFinal) {
-                if (e.hp <= e.maxHp * 0.66 && e.phase === 1) { e.phase = 2; e.data.name = "The Mon (Dragon Form)"; writeMsg("The Mon swells into a massive Dragon!"); e.mesh.scale.set(1.4,1.4,1.4); } 
-                else if (e.hp <= e.maxHp * 0.33 && e.phase === 2) { e.phase = 3; e.data.name = "The Mon (True Form)"; writeMsg("The Mon reveals its chaotic True Form!"); e.mesh.scale.set(2.2,2.2,2.2); }
+                if (e.hp <= e.maxHp * 0.66 && e.phase === 1) { e.phase = 2; e.data.name = "The Mon (Dragon Form)"; writeMsg("The Mon swells into a massive Dragon!"); e.mesh.scale.set(1.4, 1.4, 1.4); }
+                else if (e.hp <= e.maxHp * 0.33 && e.phase === 2) { e.phase = 3; e.data.name = "The Mon (True Form)"; writeMsg("The Mon reveals its chaotic True Form!"); e.mesh.scale.set(2.2, 2.2, 2.2); }
             }
         }
 
-        DOM.bAtk.onclick = () => { 
-            if(state.combatState !== 'player_turn') return; state.combatState = 'resolving'; writeMsg(`${HER_NAME} used Sword Strike!`); 
-            doMeleeSequence(() => { 
-                let dmg = Math.floor(15 + Math.random()*6) + ((state.level - 1) * 8); 
-                
+        DOM.bAtk.onclick = () => {
+            if (state.combatState !== 'player_turn') return; state.combatState = 'resolving'; writeMsg(`${HER_NAME} used Sword Strike!`);
+            doMeleeSequence(() => {
+                let baseDmg = Math.floor(15 + Math.random() * 6) + ((state.level - 1) * 8);
+                let dmg = Math.floor(baseDmg * 0.8);
                 if (state.combatAtkBuff > 0) dmg = Math.floor(dmg * (1 + state.combatAtkBuff));
-                damageEnemy(dmg); state.nomGauge = Math.min(state.maxNom, state.nomGauge + (state.combatEnemy.type === 'mirrorOfFear' ? 5 : 10)); 
-                updateBattleUI(); setTimeout(endPlayerTurn, 800); 
-            }); 
+                damageEnemy(dmg); state.nomGauge = Math.min(state.maxNom, state.nomGauge + (state.combatEnemy.type === 'mirrorOfFear' ? 5 : 10));
+                updateBattleUI(); setTimeout(endPlayerTurn, 800);
+            });
         };
-        DOM.bDef.onclick = () => { 
-            if(state.combatState !== 'player_turn') return; state.combatState = 'resolving'; state.defending = true; state.nomGauge = Math.min(state.maxNom, state.nomGauge + 5); 
-            writeMsg(`${HER_NAME} braces! Damage reduced. +5 NOM!`); updateBattleUI(); setTimeout(endPlayerTurn, 800); 
+        DOM.bDef.onclick = () => {
+            if (state.combatState !== 'player_turn') return; state.combatState = 'resolving'; state.defending = true; state.nomGauge = Math.min(state.maxNom, state.nomGauge + 5);
+            writeMsg(`${HER_NAME} braces! Damage reduced. +5 NOM!`); updateBattleUI(); setTimeout(endPlayerTurn, 800);
         };
-        
-        DOM.bItem.onclick = () => { 
-            if(state.combatState !== 'player_turn') return; DOM.spellMenu.innerHTML = '';
+
+        DOM.bItem.onclick = () => {
+            if (state.combatState !== 'player_turn') return; DOM.spellMenu.innerHTML = '';
             const createItemBtn = (name, count, effectFn) => {
-                const b = document.createElement('button'); b.className = 'pkmn-btn'; b.style.fontSize='16px'; b.style.padding='8px'; b.innerHTML = `${name}<br><span class="cost">${count} left</span>`; b.disabled = count <= 0;
+                const b = document.createElement('button'); b.className = 'pkmn-btn'; b.style.fontSize = '16px'; b.style.padding = '8px'; b.innerHTML = `${name}<br><span class="cost">${count} left</span>`; b.disabled = count <= 0;
                 b.onclick = () => { DOM.spellMenu.classList.remove('open'); effectFn(); }; DOM.spellMenu.appendChild(b);
             };
-            
+
             ['small', 'medium', 'large'].forEach(size => {
                 let boost = size === 'small' ? 25 : (size === 'medium' ? 50 : 75);
                 let labelSize = size.charAt(0).toUpperCase() + size.slice(1);
-                
+
                 if (state.inventory.health[size] > 0) {
-                    createItemBtn(`${labelSize} Health Potion (+${boost}% HP)`, state.inventory.health[size], () => { 
-                        state.inventory.health[size]--; 
+                    createItemBtn(`${labelSize} Health Potion (+${boost}% HP)`, state.inventory.health[size], () => {
+                        state.inventory.health[size]--;
                         const healAmt = Math.floor(state.maxHp * (boost / 100));
-                        state.hp = Math.min(state.maxHp, state.hp + healAmt); 
-                        state.combatState = 'resolving'; 
-                        writeMsg(`${HER_NAME} used a ${labelSize} Health Potion! +${healAmt} HP.`); 
+                        state.hp = Math.min(state.maxHp, state.hp + healAmt);
+                        state.combatState = 'resolving';
+                        writeMsg(`${HER_NAME} used a ${labelSize} Health Potion! +${healAmt} HP.`);
                         spawnFloatingText(`+${healAmt}`, char, 'heal');
-                        updateBattleUI(); setTimeout(endPlayerTurn, 800); 
+                        updateBattleUI(); setTimeout(endPlayerTurn, 800);
                     });
                 }
                 if (state.inventory.atk[size] > 0) {
-                    createItemBtn(`${labelSize} Attack Potion (+${boost}% Dmg)`, state.inventory.atk[size], () => { 
-                        state.inventory.atk[size]--; 
-                        state.combatAtkBuff = (state.combatAtkBuff || 0) + (boost / 100); 
-                        state.combatState = 'resolving'; 
-                        writeMsg(`${HER_NAME}'s Attack rose by ${boost}%!`); 
-                        updateBattleUI(); setTimeout(endPlayerTurn, 800); 
+                    createItemBtn(`${labelSize} Attack Potion (+${boost}% Dmg)`, state.inventory.atk[size], () => {
+                        state.inventory.atk[size]--;
+                        state.combatAtkBuff = (state.combatAtkBuff || 0) + (boost / 100);
+                        state.combatState = 'resolving';
+                        writeMsg(`${HER_NAME}'s Attack rose by ${boost}%!`);
+                        updateBattleUI(); setTimeout(endPlayerTurn, 800);
                     });
                 }
                 if (state.inventory.def[size] > 0) {
-                    createItemBtn(`${labelSize} Defense Potion (-${boost}% Dmg Taken)`, state.inventory.def[size], () => { 
-                        state.inventory.def[size]--; 
-                        state.combatDefBuff = (state.combatDefBuff || 0) + (boost / 100); 
-                        state.combatState = 'resolving'; 
-                        writeMsg(`${HER_NAME}'s Defense rose by ${boost}%!`); 
-                        updateBattleUI(); setTimeout(endPlayerTurn, 800); 
+                    createItemBtn(`${labelSize} Defense Potion (-${boost}% Dmg Taken)`, state.inventory.def[size], () => {
+                        state.inventory.def[size]--;
+                        state.combatDefBuff = (state.combatDefBuff || 0) + (boost / 100);
+                        state.combatState = 'resolving';
+                        writeMsg(`${HER_NAME}'s Defense rose by ${boost}%!`);
+                        updateBattleUI(); setTimeout(endPlayerTurn, 800);
                     });
                 }
             });
@@ -1482,25 +2278,25 @@
         };
 
         DOM.bSpell.onclick = () => {
-            if(state.combatState !== 'player_turn') return; DOM.spellMenu.innerHTML = '';
+            if (state.combatState !== 'player_turn') return; DOM.spellMenu.innerHTML = '';
             if (state.unlockedSpells.length === 0) return;
             state.unlockedSpells.forEach(sp => {
-                const b = document.createElement('button'); b.className = 'pkmn-btn'; b.style.fontSize='16px'; b.style.padding='8px'; b.innerHTML = `${sp}<br><span class="cost">${SPELLS[sp].cost} NOM</span>`;
+                const b = document.createElement('button'); b.className = 'pkmn-btn'; b.style.fontSize = '16px'; b.style.padding = '8px'; b.innerHTML = `${sp}<br><span class="cost">${SPELLS[sp].cost} NOM</span>`;
                 b.onclick = () => {
-                    if(state.nomGauge < SPELLS[sp].cost && !GOD_MODE) { writeMsg(`Not enough NOM gauge!`); return; }
+                    if (state.nomGauge < SPELLS[sp].cost && !GOD_MODE) { writeMsg(`Not enough NOM gauge!`); return; }
                     DOM.spellMenu.classList.remove('open'); state.combatState = 'resolving'; if (!GOD_MODE) state.nomGauge -= SPELLS[sp].cost; writeMsg(`${HER_NAME} whispers ${sp}...`);
-                    if (sp === 'Nom Shield') { playPlayerAnim('spellShield', null, () => { state.nextHitAbsorbed = true; updateBattleUI(); setTimeout(endPlayerTurn, 800); }); } 
-                    else if (sp === 'Nom Burst') { playPlayerAnim('spellBurst', null, () => { flashScreen(() => { damageEnemy(9999, sp); updateBattleUI(); setTimeout(endPlayerTurn, 800); }); }); } 
+                    if (sp === 'Nom Shield') { playPlayerAnim('spellShield', null, () => { state.nextHitAbsorbed = state.level >= state.maxLevel ? 2 : 1; updateBattleUI(); setTimeout(endPlayerTurn, 800); }); }
+                    else if (sp === 'Nom Burst') { playPlayerAnim('spellBurst', null, () => { flashScreen(() => { damageEnemy(250, sp); updateBattleUI(); setTimeout(endPlayerTurn, 800); }); }); }
                     else {
                         const spellAnim = sp === 'Nom Spark' ? 'spellSpark' : (sp === 'Nom Pulse' ? 'spellPulse' : 'spellBind');
-                        playPlayerAnim(spellAnim, null, () => { 
-                            let dmg = sp === 'Nom Spark' ? 40 : 60; 
+                        playPlayerAnim(spellAnim, null, () => {
+                            let dmg = sp === 'Nom Spark' ? 40 : (sp === 'Nom Pulse' ? 104 : 60);
                             dmg += ((state.level - 1) * 12);
-                            
+                            dmg = Math.floor(dmg * 0.8);
                             if (state.combatAtkBuff > 0) dmg = Math.floor(dmg * (1 + state.combatAtkBuff)); damageEnemy(dmg, sp);
-                            if(sp==='Nom Pulse') { state.combatEnemy.boundTurns = 1; writeMsg(`Heavy hit! Target stunned.`); }
-                            if(sp==='Nom Bind') { state.combatEnemy.boundTurns = 2; writeMsg(`Chains of light root the enemy!`); }
-                            updateBattleUI(); setTimeout(endPlayerTurn, 800); 
+                            if (sp === 'Nom Pulse') { state.combatEnemy.boundTurns = 1; writeMsg(`Heavy hit! Target stunned.`); }
+                            if (sp === 'Nom Bind') { state.combatEnemy.boundTurns = 2; writeMsg(`Chains of light root the enemy!`); }
+                            updateBattleUI(); setTimeout(endPlayerTurn, 800);
                         });
                     }
                 }; DOM.spellMenu.appendChild(b);
@@ -1510,23 +2306,26 @@
         function endPlayerTurn() {
             if (state.combatEnemy.hp <= 0) {
                 const expGained = state.combatEnemy.data.exp || 0;
-                writeMsg(`${state.combatEnemy.data.name} fades away... (+${expGained} EXP)`); 
+                writeMsg(`${state.combatEnemy.data.name} fades away... (+${expGained} EXP)`);
                 state.nomGauge = Math.min(state.maxNom, state.nomGauge + (state.combatEnemy.data.isBoss ? 30 : 20));
-                
+
                 // Level Up Logic
                 if (state.level < state.maxLevel) {
                     state.exp += expGained;
                     while (state.level < state.maxLevel && state.exp >= EXP_REQ[state.level]) {
                         state.level++;
-                        state.maxHp += 20;   // Gain 20 Max HP per level
+                        state.maxHp += (state.level === state.maxLevel) ? 50 : 25; // Final level gives +50 HP
                         state.hp = state.maxHp; // Fully heal!
                         setTimeout(() => showToast(`Level Up! You reached Level ${state.level}!`), 1500);
+                        if (state.level === state.maxLevel) {
+                            setTimeout(() => showToast('Nom Shield upgraded! Now shields 2 hits.'), 2500);
+                        }
                     }
                 }
 
-                const isFinal = state.combatEnemy.data.isFinal; 
-                state.combatEnemy.defeated = true; 
-                
+                const isFinal = state.combatEnemy.data.isFinal;
+                state.combatEnemy.defeated = true;
+
                 if (state.combatEnemy.type === 'wardenOfDistance' && wardenDeadAnim) {
                     let deathAction = state.combatEnemy.mixer.clipAction(wardenDeadAnim);
                     deathAction.reset();
@@ -1554,19 +2353,19 @@
                 } else {
                     scene.remove(state.combatEnemy.mesh); // Only remove non-animated enemies instantly
                 }
-                
-                if (state.combatEnemy.data.unlock && !state.unlockedSpells.includes(state.combatEnemy.data.unlock)) { 
-                    state.unlockedSpells.push(state.combatEnemy.data.unlock); 
-                    setTimeout(() => showToast(`Unlocked: ${state.combatEnemy.data.unlock}!`), 500); 
+
+                if (state.combatEnemy.data.unlock && !state.unlockedSpells.includes(state.combatEnemy.data.unlock)) {
+                    state.unlockedSpells.push(state.combatEnemy.data.unlock);
+                    setTimeout(() => showToast(`Unlocked: ${state.combatEnemy.data.unlock}!`), 500);
                 }
-                setTimeout(() => exitCombat(true, isFinal), 2500); 
+                setTimeout(() => exitCombat(true, isFinal), 2500);
                 return;
             }
             state.combatState = 'enemy_turn'; setTimeout(enemyTurn, 500);
         }
 
         function enemyTurn() {
-            const e = state.combatEnemy; 
+            const e = state.combatEnemy;
             if (e.boundTurns > 0) {
                 writeMsg(`${e.data.name} is bound by light and cannot move!`); e.boundTurns--; state.nomGauge = Math.min(state.maxNom, state.nomGauge + 5);
                 setTimeout(() => { state.combatState = 'player_turn'; updateBattleUI(); writeMsg(`What will ${HER_NAME} do?`); }, 1000); return;
@@ -1574,43 +2373,65 @@
 
             let attackList = e.data.attacks;
             if (e.data.isFinal) {
-                if (e.phase === 1) attackList =["Frantic Swipe", "Chaos Bolt", "Crazed Bite", "Goblin Frenzy"];
-                else if (e.phase === 2) attackList =["Hellfire Breath", "Draconic Slam", "Wing Gust", "Tail Sweep"];
-                else attackList =["Obliteration Ray", "Reality Tear", "Echo of Despair", "Void Collapse", "Final Doom", "Screaming Shadows"];
+                if (e.phase === 1) attackList = ["Frantic Swipe", "Chaos Bolt", "Crazed Bite", "Goblin Frenzy"];
+                else if (e.phase === 2) attackList = ["Hellfire Breath", "Draconic Slam", "Wing Gust", "Tail Sweep"];
+                else attackList = ["Obliteration Ray", "Reality Tear", "Echo of Despair", "Void Collapse", "Final Doom", "Screaming Shadows"];
             }
             const attackName = attackList[Math.floor(Math.random() * attackList.length)];
             writeMsg(`${e.data.name} used ${attackName}!`);
 
             let animCb = () => {
+                // Explicitly resume idle animation so enemies don't get stuck in attack pose
+                if (e.mixer && e.activeAction) {
+                    e.activeAction.reset();
+                    e.activeAction.play();
+                }
                 let wasBlocked = false;
-                if (state.nextHitAbsorbed) { 
-                    writeMsg(`The Nom Shield absorbed the blow!`); 
-                    state.nextHitAbsorbed = false; 
+                if (state.nextHitAbsorbed > 0) {
+                    writeMsg(`The Nom Shield absorbed the blow!`);
+                    state.nextHitAbsorbed--;
                     wasBlocked = true;
                     spawnFloatingText('BLOCKED', char, 'heal');
                 } else {
-                    let dmg = Math.floor(e.data.atk * (0.8 + Math.random()*0.4)); 
-                    
+                    let dmg = Math.floor(e.data.atk * (0.8 + Math.random() * 0.4));
+
                     // Calculate Level Defense
                     dmg = Math.max(1, dmg - ((state.level - 1) * 3));
-                    
+
                     if (state.combatDefBuff > 0) dmg = Math.floor(dmg * (1 - state.combatDefBuff)); if (state.defending) dmg = Math.floor(dmg * 0.5);
                     state.hp -= dmg; state.defending = false; state.nomGauge = Math.min(state.maxNom, state.nomGauge + 15);
-                    
+
                     spawnFloatingText(dmg, char, 'damage-player');
                 }
                 updateBattleUI(); updateHUD();
-                if (state.hp <= 0) { 
-                    writeMsg(`${HER_NAME} fell to her knees...`); playPlayerAnim('dead', 2000, () => {}); setTimeout(() => { state.hp = state.maxHp; state.nomGauge = 0; char.position.copy(state.checkpoint); exitCombat(false); }, 2000);
-                } else { 
-                    if (!wasBlocked && Math.random() < 0.15) {
+                if (state.hp <= 0) {
+                    writeMsg(`${HER_NAME} fell to her knees...`);
+                    playPlayerAnim('dead', 2000, () => { });
+                    setTimeout(() => {
+                        state.hp = state.maxHp;
+                        state.nomGauge = 0;
+                        char.position.copy(state.checkpoint);
+                        enemies.forEach(en => {
+                            if (en.defeated && !en.data.isBoss) {
+                                en.defeated = false; en.hp = en.maxHp; scene.add(en.mesh);
+                            }
+                        });
+                        interactables.forEach(item => {
+                            if (!item.active && (item.type === 'health' || item.type === 'atk' || item.type === 'def')) {
+                                item.active = true; scene.add(item.mesh);
+                            }
+                        });
+                        exitCombat(false);
+                    }, 2000);
+                } else {
+                    if (!wasBlocked && e.data.isBoss && Math.random() < 0.15) {
                         writeMsg(`${HER_NAME} was stunned by the attack!`);
                         spawnFloatingText('STUNNED', char, 'damage-player');
                         state.combatState = 'enemy_turn';
                         setTimeout(enemyTurn, 1500);
                     } else {
-                        state.combatState = 'player_turn'; updateBattleUI(); 
-                        setTimeout(() => { if(state.combatState === 'player_turn') writeMsg(`What will ${HER_NAME} do?`); }, 1200); 
+                        state.combatState = 'player_turn'; updateBattleUI();
+                        setTimeout(() => { if (state.combatState === 'player_turn') writeMsg(`What will ${HER_NAME} do?`); }, 1200);
                     }
                 }
             };
@@ -1619,9 +2440,9 @@
                 let targetAnim = wardenKickAnim;
                 if (attackName === 'Mist Slam') targetAnim = wardenJumpAnim;
                 else if (attackName === 'Cold Slice') targetAnim = wardenAxeSpinAnim;
-                
+
                 state.combatAnim = { active: true, phase: 'dash_in', t: 0, attacker: e.mesh, target: char, startPos: e.mesh.position.clone(), tgtPos: char.position.clone().add(e.mesh.position.clone().sub(char.position).normalize().multiplyScalar(3.5)) };
-                
+
                 setTimeout(() => {
                     state.combatAnim.active = false;
                     setTimeout(() => {
@@ -1629,10 +2450,10 @@
                         attackAction.reset();
                         attackAction.setLoop(THREE.LoopOnce);
                         attackAction.clampWhenFinished = true;
-                        
+
                         e.activeAction.crossFadeTo(attackAction, 0.2, false);
                         attackAction.play();
-                        
+
                         setTimeout(() => {
                             attackAction.crossFadeTo(e.activeAction, 0.4, false);
                             setTimeout(() => {
@@ -1673,9 +2494,9 @@
                 let targetAnim = emberJumpAnim;
                 if (attackName === 'Ember Storm') targetAnim = emberSpellAnim;
                 else if (attackName === 'Heat Wave') targetAnim = emberSpell2Anim;
-                
+
                 state.combatAnim = { active: true, phase: 'dash_in', t: 0, attacker: e.mesh, target: char, startPos: e.mesh.position.clone(), tgtPos: char.position.clone().add(e.mesh.position.clone().sub(char.position).normalize().multiplyScalar(3.5)) };
-                
+
                 setTimeout(() => {
                     state.combatAnim.active = false;
                     setTimeout(() => {
@@ -1683,10 +2504,10 @@
                         attackAction.reset();
                         attackAction.setLoop(THREE.LoopOnce);
                         attackAction.clampWhenFinished = true;
-                        
+
                         e.activeAction.crossFadeTo(attackAction, 0.2, false);
                         attackAction.play();
-                        
+
                         setTimeout(() => {
                             attackAction.crossFadeTo(e.activeAction, 0.4, false);
                             setTimeout(() => {
@@ -1724,11 +2545,11 @@
                     else if (attackName === 'Screaming Shadows') targetAnim = monMageSpell1Anim;
                     else targetAnim = monSpell1Anim;
                 }
-                
+
                 if (e.phase <= 2) {
                     // Dash in for phases 1 and 2
                     state.combatAnim = { active: true, phase: 'dash_in', t: 0, attacker: e.mesh, target: char, startPos: e.mesh.position.clone(), tgtPos: char.position.clone().add(e.mesh.position.clone().sub(char.position).normalize().multiplyScalar(3.5)) };
-                    
+
                     setTimeout(() => {
                         state.combatAnim.active = false;
                         setTimeout(() => {
@@ -1736,10 +2557,10 @@
                             attackAction.reset();
                             attackAction.setLoop(THREE.LoopOnce);
                             attackAction.clampWhenFinished = true;
-                            
+
                             e.activeAction.crossFadeTo(attackAction, 0.2, false);
                             attackAction.play();
-                            
+
                             setTimeout(() => {
                                 attackAction.crossFadeTo(e.activeAction, 0.4, false);
                                 setTimeout(() => {
@@ -1773,6 +2594,39 @@
                         animCb();
                     }
                 }
+            } else if (e.type === 'mirrorOfFear' && e.mixer) {
+                let targetAnim = mirrorAttackAnim;
+                if (attackName === 'Reflection Pierce') targetAnim = mirrorSpell2Anim;
+                else if (attackName === 'Shatter Reality') targetAnim = mirrorSpell1Anim;
+
+                state.combatAnim = { active: true, phase: 'dash_in', t: 0, attacker: e.mesh, target: char, startPos: e.mesh.position.clone(), tgtPos: char.position.clone().add(e.mesh.position.clone().sub(char.position).normalize().multiplyScalar(3.5)) };
+
+                setTimeout(() => {
+                    state.combatAnim.active = false;
+                    setTimeout(() => {
+                        let attackAction = e.mixer.clipAction(targetAnim);
+                        attackAction.reset();
+                        attackAction.setLoop(THREE.LoopOnce);
+                        attackAction.clampWhenFinished = true;
+
+                        e.activeAction.crossFadeTo(attackAction, 0.2, false);
+                        attackAction.play();
+
+                        setTimeout(() => {
+                            attackAction.crossFadeTo(e.activeAction, 0.4, false);
+                            setTimeout(() => {
+                                state.combatAnim.active = true;
+                                state.combatAnim.phase = 'dash_out';
+                                state.combatAnim.t = 0;
+                                setTimeout(() => {
+                                    state.combatAnim.active = false;
+                                    e.mesh.position.copy(state.combatAnim.startPos);
+                                    animCb();
+                                }, 300);
+                            }, 100);
+                        }, (targetAnim.duration * 1000) - 200);
+                    }, 100);
+                }, 300);
             } else {
                 triggerAttackAnim(e.mesh, char, animCb);
             }
@@ -1782,20 +2636,20 @@
         // INPUT & INTERACTION LOGIC
         // ============================================================
         document.getElementById('btn-start-game').onclick = () => { DOM.introScreen.classList.remove('active'); state.gameState = 'EXPLORE'; DOM.hudCont.classList.add('visible'); document.body.requestPointerLock(); };
-        document.getElementById('btn-credits').onclick = () => { DOM.endScreen.classList.remove('active'); DOM.creditsScreen.classList.add('active'); DOM.credits.innerHTML = `<div class="credit-name">NOM KNIGHT</div><div class="credit-line">The Knight Who Made It</div><div class="credit-name">${HER_NAME}</div><div class="credit-line">Worth Every Step</div><div class="credit-name">${YOUR_NAME}</div><br><br><div class="credit-line">Ending Theme</div><div class="credit-name">${NOM_LANGUAGE_WORD}</div>`; };
+        document.getElementById('btn-credits').onclick = () => { DOM.endScreen.classList.remove('active'); DOM.creditsScreen.classList.add('active'); DOM.credits.innerHTML = `<div class="credit-name">NOM KNIGHT</div><div class="credit-line">The Knight Who Made It</div><div class="credit-name">${HER_NAME}</div><div class="credit-line">Worth Every Step</div><div class="credit-name">${YOUR_NAME}</div>`; };
         document.body.addEventListener('click', () => { if (state.gameState === 'PAUSED' || state.gameState === 'EXPLORE' || state.gameState === 'ENDING_RUN') { document.body.requestPointerLock(); } });
         document.addEventListener('pointerlockchange', () => { state.pointerLocked = document.pointerLockElement === document.body; if (!state.pointerLocked) { if (state.gameState === 'EXPLORE' || state.gameState === 'ENDING_RUN') { state.gameState = 'PAUSED'; DOM.menuOverlay.classList.add('open'); DOM.hudCont.classList.remove('visible'); } } else { if (state.gameState === 'PAUSED') { DOM.menuOverlay.classList.remove('open'); DOM.hudCont.classList.add('visible'); state.gameState = (state.shakeIntensity > 0) ? 'ENDING_RUN' : 'EXPLORE'; } } });
         document.addEventListener('mousemove', e => { if (!state.pointerLocked) return; if (state.gameState === 'EXPLORE' || state.gameState === 'ENDING_RUN') { state.camera.yaw -= e.movementX * 0.0022; state.camera.pitch += e.movementY * 0.0022; state.camera.pitch = Math.max(0.05, Math.min(0.8, state.camera.pitch)); } });
-        
+
         window.addEventListener('keydown', e => {
             state.keys[e.code] = true;
-            if(e.code === 'KeyE' && (state.gameState === 'EXPLORE' || state.gameState === 'ENDING_RUN')) { document.exitPointerLock(); }
-            if(e.code === 'KeyF' && state.gameState === 'EXPLORE') {
+            if (e.code === 'KeyE' && (state.gameState === 'EXPLORE' || state.gameState === 'ENDING_RUN')) { document.exitPointerLock(); }
+            if (e.code === 'KeyF' && state.gameState === 'EXPLORE') {
                 const px = char.position.x, pz = char.position.z;
                 let interacted = false;
-                for(let item of interactables) {
-                    if(!item.active) continue;
-                    if(Math.hypot(px - item.mesh.position.x, pz - item.mesh.position.z) < 3) {
+                for (let item of interactables) {
+                    if (!item.active) continue;
+                    if (Math.hypot(px - item.mesh.position.x, pz - item.mesh.position.z) < 3) {
                         interacted = true;
                         if (item.type === 'health' || item.type === 'atk' || item.type === 'def') {
                             if (state.inventory[item.type][item.size] < state.maxPerSize) {
@@ -1810,20 +2664,20 @@
                                 showToast(`Inventory full for this size! (Max ${state.maxPerSize})`);
                             }
                         } else if (item.type === 'campfire') {
-                            if(state.nomGauge >= 20) { state.nomGauge -= 20; state.hp = state.maxHp; state.checkpoint.copy(char.position); updateHUD(); showToast("Rested. HP Restored. Checkpoint saved."); } 
+                            if (state.nomGauge >= 20) { state.nomGauge -= 20; state.hp = state.maxHp; state.checkpoint.copy(char.position); updateHUD(); showToast("Rested. HP Restored. Checkpoint saved."); }
                             else { showToast("Need 20 NOM to rest."); }
                         } else if (item.type === 'letter' || item.type === 'npc') {
                             state.gameState = 'DIALOGUE'; document.exitPointerLock(); DOM.dialogueOverlay.classList.add('active');
                             DOM.dSpeaker.textContent = item.type === 'letter' ? "Folded Paper" : item.name; DOM.dText.textContent = item.type === 'letter' ? item.text : item.dialogue;
-                            if (item.type === 'npc' && item.givesHerb && !item.spoken) { 
-                                item.spoken = true; 
-                                if(state.inventory.health.small < state.maxPerSize) {
-                                    state.inventory.health.small++; 
-                                    updateHUD(); 
-                                    setTimeout(()=>showToast("+1 Small Health Potion from " + item.name), 1000); 
+                            if (item.type === 'npc' && item.givesHerb && !item.spoken) {
+                                item.spoken = true;
+                                if (state.inventory.health.small < state.maxPerSize) {
+                                    state.inventory.health.small++;
+                                    updateHUD();
+                                    setTimeout(() => showToast("+1 Small Health Potion from " + item.name), 1000);
                                 }
                             }
-                            if (item.name === "The Handmaiden" && !state.unlockedSpells.includes('Nom Burst')) { state.unlockedSpells.push('Nom Burst'); setTimeout(()=>showToast("The power swells... Unlocked: Nom Burst!"), 1000); }
+                            if (item.name === "The Handmaiden" && !state.unlockedSpells.includes('Nom Burst')) { state.unlockedSpells.push('Nom Burst'); setTimeout(() => showToast("The power swells... Unlocked: Nom Burst!"), 1000); }
                         }
                         break;
                     }
@@ -1837,7 +2691,16 @@
                     }
                 }
             }
-            if(e.code === 'Space' && state.gameState === 'DIALOGUE') { state.gameState = 'EXPLORE'; DOM.dialogueOverlay.classList.remove('active'); document.body.requestPointerLock(); }
+            if (e.code === 'Space' && state.gameState === 'DIALOGUE') {
+                if (DOM.dSpeaker.textContent === 'Madhav') {
+                    state.gameState = 'ENDING_CUTSCENE'; document.exitPointerLock(); state.shakeIntensity = 0; DOM.objToast.classList.remove('active');
+                    DOM.endText.textContent = ENDING_DIALOGUE; DOM.endScreen.classList.add('active');
+                } else {
+                    state.gameState = (state.shakeIntensity > 0) ? 'ENDING_RUN' : 'EXPLORE';
+                    DOM.dialogueOverlay.classList.remove('active');
+                    document.body.requestPointerLock();
+                }
+            }
         });
         window.addEventListener('keyup', e => { state.keys[e.code] = false; });
 
@@ -1846,18 +2709,18 @@
         // ============================================================
         function enforcePathBoundary(charPos, radius) {
             let minD = Infinity; let bestProj = null;
-            for(let seg of safeLines) { let res = getSegmentDistSq(charPos, {x:seg.x1, z:seg.z1}, {x:seg.x2, z:seg.z2}); if (res.distSq < minD) { minD = res.distSq; bestProj = res; } }
-            for(let r of safeRects) { let res = getRectDistSq(charPos, r); if (res.distSq < minD) { minD = res.distSq; bestProj = res; } }
-            if (minD > radius*radius && bestProj) {
+            for (let seg of safeLines) { let res = getSegmentDistSq(charPos, { x: seg.x1, z: seg.z1 }, { x: seg.x2, z: seg.z2 }); if (res.distSq < minD) { minD = res.distSq; bestProj = res; } }
+            for (let r of safeRects) { let res = getRectDistSq(charPos, r); if (res.distSq < minD) { minD = res.distSq; bestProj = res; } }
+            if (minD > radius * radius && bestProj) {
                 const dist = Math.sqrt(minD); if (dist > 0) { const dirX = (charPos.x - bestProj.projX) / dist; const dirZ = (charPos.z - bestProj.projZ) / dist; charPos.x = bestProj.projX + dirX * radius; charPos.z = bestProj.projZ + dirZ * radius; }
             }
         }
         function resolveAABBCollisions(charPos, radius) {
             for (let box of collidersAABB) {
                 const closestX = Math.max(box.minX, Math.min(charPos.x, box.maxX)); const closestZ = Math.max(box.minZ, Math.min(charPos.z, box.maxZ));
-                const dx = charPos.x - closestX; const dz = charPos.z - closestZ; const distSq = dx*dx + dz*dz;
+                const dx = charPos.x - closestX; const dz = charPos.z - closestZ; const distSq = dx * dx + dz * dz;
                 if (distSq < radius * radius) {
-                    if (distSq === 0) { const d1 = charPos.x - box.minX; const d2 = box.maxX - charPos.x; const d3 = charPos.z - box.minZ; const d4 = box.maxZ - charPos.z; const minDist = Math.min(d1, d2, d3, d4); if (minDist === d1) charPos.x = box.minX - radius; else if (minDist === d2) charPos.x = box.maxX + radius; else if (minDist === d3) charPos.z = box.minZ - radius; else charPos.z = box.maxZ + radius; } 
+                    if (distSq === 0) { const d1 = charPos.x - box.minX; const d2 = box.maxX - charPos.x; const d3 = charPos.z - box.minZ; const d4 = box.maxZ - charPos.z; const minDist = Math.min(d1, d2, d3, d4); if (minDist === d1) charPos.x = box.minX - radius; else if (minDist === d2) charPos.x = box.maxX + radius; else if (minDist === d3) charPos.z = box.minZ - radius; else charPos.z = box.maxZ + radius; }
                     else { const dist = Math.sqrt(distSq); charPos.x += (dx / dist) * (radius - dist); charPos.z += (dz / dist) * (radius - dist); }
                 }
             }
@@ -1872,11 +2735,11 @@
             // DYNAMIC BIOME SHIFTING
             let targetFogColor = 0x0a121a; let targetLight = 0xffeedd; let pColor = 0x88cc88;
             const z = char.position.z;
-            if (z > -160) { targetFogColor = 0x0a121a; targetLight = 0xffeedd; pColor = 0x88cc88; } 
-            else if (z > -400) { targetFogColor = 0x05101a; targetLight = 0x88ccff; pColor = 0x4488ff; } 
-            else if (z > -590) { targetFogColor = 0x1a0505; targetLight = 0xff6644; pColor = 0xff5522; } 
-            else if (z > -790) { targetFogColor = 0x0a001a; targetLight = 0x9944ff; pColor = 0xaa22ff; } 
-            else { targetFogColor = 0x000000; targetLight = 0x444444; pColor = 0xaaaaaa; } 
+            if (z > -250) { targetFogColor = 0x0a121a; targetLight = 0xffeedd; pColor = 0x88cc88; }
+            else if (z > -550) { targetFogColor = 0x05101a; targetLight = 0x88ccff; pColor = 0x4488ff; }
+            else if (z > -850) { targetFogColor = 0x1a0505; targetLight = 0xff6644; pColor = 0xff5522; }
+            else if (z > -1150) { targetFogColor = 0x0a001a; targetLight = 0x9944ff; pColor = 0xaa22ff; }
+            else { targetFogColor = 0x000000; targetLight = 0x444444; pColor = 0xaaaaaa; }
 
             scene.fog.color.lerp(new THREE.Color(targetFogColor), 0.05);
             scene.background.lerp(new THREE.Color(targetFogColor), 0.05);
@@ -1891,20 +2754,13 @@
                     for (let item of interactables) {
                         if (item.active && Math.hypot(char.position.x - item.mesh.position.x, char.position.z - item.mesh.position.z) < 3) {
                             if (item.type === 'herb' || item.type === 'atk' || item.type === 'def') promptText = "Press F to pick up item";
-                            else if (item.type === 'campfire') promptText = "Press F to rest (20 NOM)";
+                            else if (item.type === 'campfire') promptText = "Press F to rest (-20 NOM)";
                             else if (item.type === 'letter') promptText = "Press F to read";
                             else if (item.type === 'npc') promptText = `Press F to talk to ${item.name}`;
                             break;
                         }
                     }
-                    if (!promptText) {
-                        for (let e of enemies) {
-                            if (!e.defeated && Math.hypot(char.position.x - e.x, char.position.z - e.z) < 4.5) {
-                                promptText = `Press F to fight ${e.data.name}`;
-                                break;
-                            }
-                        }
-                    }
+
                     if (promptText) { DOM.interactPrompt.textContent = promptText; DOM.interactPrompt.classList.add('active'); } else { DOM.interactPrompt.classList.remove('active'); }
                 }
 
@@ -1913,9 +2769,9 @@
                 if (state.keys['KeyS']) dir.sub(new THREE.Vector3(-Math.sin(state.camera.yaw), 0, -Math.cos(state.camera.yaw)));
                 if (state.keys['KeyD']) dir.add(new THREE.Vector3(Math.cos(state.camera.yaw), 0, -Math.sin(state.camera.yaw)));
                 if (state.keys['KeyA']) dir.sub(new THREE.Vector3(Math.cos(state.camera.yaw), 0, -Math.sin(state.camera.yaw)));
-                
+
                 isMoving = dir.lengthSq() > 0; isSprint = isMoving && state.keys['ShiftLeft'];
-                if(isMoving) {
+                if (isMoving) {
                     dir.normalize(); const spd = (isSprint ? state.sprintSpeed : state.speed) * dt;
                     char.position.x += dir.x * spd; char.position.z += dir.z * spd;
                     const ty = Math.atan2(dir.x, dir.z); let diff = ty - char.rotation.y;
@@ -1925,27 +2781,30 @@
 
                 enforcePathBoundary(char.position, 4.5); resolveAABBCollisions(char.position, 0.4);
 
+                // Auto-trigger combat when near enemies
+                for (let e of enemies) {
+                    if (!e.defeated && Math.hypot(char.position.x - e.x, char.position.z - e.z) < 4.5) {
+                        enterCombat(e);
+                        break;
+                    }
+                }
+
                 let targetY = 0;
-                if (char.position.z < -1030 && char.position.z >= -1100) { targetY = ((-1030 - char.position.z) / 70) * 17.5; } 
-                else if (char.position.z < -1100) { targetY = 17.5; }
+                if (char.position.z < -1470 && char.position.z >= -1540) { targetY = ((-1470 - char.position.z) / 70) * 17.5; }
+                else if (char.position.z < -1540) { targetY = 17.5; }
                 char.position.y += (targetY - char.position.y) * 0.2;
 
-
-
-                if (state.gameState === 'ENDING_RUN' && char.position.z < -1045 && char.position.y > 3.0) {
-                    state.gameState = 'ENDING_CUTSCENE'; document.exitPointerLock(); state.shakeIntensity = 0; DOM.objToast.classList.remove('active');
-                    DOM.endText.textContent = ENDING_DIALOGUE; DOM.endScreen.classList.add('active');
-                }
+                    // Ending cutscene is triggered by talking to Madhav, not by position
 
                 const camTarget = new THREE.Vector3(char.position.x, char.position.y + 1.25, char.position.z);
                 const pitch = state.camera.pitch, yaw = state.camera.yaw, camDist = state.camera.distance;
-                const idealPos = new THREE.Vector3(camTarget.x + Math.sin(yaw)*Math.cos(pitch)*camDist, camTarget.y + Math.sin(pitch)*camDist, camTarget.z + Math.cos(yaw)*Math.cos(pitch)*camDist);
+                const idealPos = new THREE.Vector3(camTarget.x + Math.sin(yaw) * Math.cos(pitch) * camDist, camTarget.y + Math.sin(pitch) * camDist, camTarget.z + Math.cos(yaw) * Math.cos(pitch) * camDist);
                 let finalCamPos = idealPos.clone();
-                
+
                 for (let box of collidersAABB) {
                     const cx = Math.max(box.minX, Math.min(finalCamPos.x, box.maxX)); const cz = Math.max(box.minZ, Math.min(finalCamPos.z, box.maxZ));
-                    const dx = finalCamPos.x - cx; const dz = finalCamPos.z - cz; const distSq = dx*dx + dz*dz; const camRad = 0.5;
-                    if (distSq < camRad*camRad) { if (distSq === 0) { finalCamPos.lerp(camTarget, 0.5); } else { const dist = Math.sqrt(distSq); finalCamPos.x += (dx/dist)*(camRad - dist); finalCamPos.z += (dz/dist)*(camRad - dist); } }
+                    const dx = finalCamPos.x - cx; const dz = finalCamPos.z - cz; const distSq = dx * dx + dz * dz; const camRad = 0.5;
+                    if (distSq < camRad * camRad) { if (distSq === 0) { finalCamPos.lerp(camTarget, 0.5); } else { const dist = Math.sqrt(distSq); finalCamPos.x += (dx / dist) * (camRad - dist); finalCamPos.z += (dz / dist) * (camRad - dist); } }
                 }
 
                 const rayDir = new THREE.Vector3().subVectors(finalCamPos, camTarget); const distToCam = rayDir.length(); rayDir.normalize();
@@ -1953,25 +2812,25 @@
                 if (intersects.length > 0 && intersects[0].distance < distToCam) { finalCamPos = camTarget.clone().add(rayDir.multiplyScalar(Math.max(0.2, intersects[0].distance - 0.4))); }
 
                 state.camSmoothPos.lerp(finalCamPos, 0.15); state.camSmoothLook.lerp(camTarget, 0.15);
-                
+
             } else if (state.gameState === 'COMBAT') {
                 if (state.combatAnim.active) {
-                    state.combatAnim.t += dt * 3.3; if(state.combatAnim.t > 1) state.combatAnim.t = 1;
-                    const lerpT = state.combatAnim.phase === 'dash_in' ? Math.sin(state.combatAnim.t * Math.PI/2) : 1 - Math.sin(state.combatAnim.t * Math.PI/2);
+                    state.combatAnim.t += dt * 3.3; if (state.combatAnim.t > 1) state.combatAnim.t = 1;
+                    const lerpT = state.combatAnim.phase === 'dash_in' ? Math.sin(state.combatAnim.t * Math.PI / 2) : 1 - Math.sin(state.combatAnim.t * Math.PI / 2);
                     state.combatAnim.attacker.position.lerpVectors(state.combatAnim.startPos, state.combatAnim.tgtPos, lerpT);
                 }
             }
 
             particles.position.copy(char.position); particles.position.y = 5;
             const pArr = particleGeo.attributes.position.array;
-            for(let i=0; i<particleCount; i++) { pArr[i*3+1] -= dt * (2 + Math.random()); if (pArr[i*3+1] < -15) pArr[i*3+1] = 15; }
+            for (let i = 0; i < particleCount; i++) { pArr[i * 3 + 1] -= dt * (2 + Math.random()); if (pArr[i * 3 + 1] < -15) pArr[i * 3 + 1] = 15; }
             particleGeo.attributes.position.needsUpdate = true;
 
             dirLight.position.x = char.position.x + 15; dirLight.position.z = char.position.z + 10;
             dirLight.target.position.copy(char.position); dirLight.target.updateMatrixWorld();
 
             camera.position.copy(state.camSmoothPos); camera.lookAt(state.camSmoothLook);
-            
+
             if (state.shakeIntensity > 0) { camera.position.x += (Math.random() - 0.5) * state.shakeIntensity; camera.position.y += (Math.random() - 0.5) * state.shakeIntensity; camera.position.z += (Math.random() - 0.5) * state.shakeIntensity; }
 
             updateCharacterAnimation(dt, isMoving, isSprint);
@@ -1979,21 +2838,21 @@
             enemyMixers.forEach(m => m.update(dt));
             renderer.render(scene, camera);
         }
-        
-        updateHUD(); 
-        
+
+        updateHUD();
+
         const btnStart = document.getElementById('btn-start-game');
         const loadingText = document.createElement('div');
         loadingText.id = 'loading-text';
         loadingText.style.cssText = 'margin-top:12px;font-size:14px;color:#888;letter-spacing:1px;';
         btnStart.parentNode.insertBefore(loadingText, btnStart.nextSibling);
-        
+
         btnStart.textContent = "Loading Assets...";
         btnStart.disabled = true;
-        
+
         // Start rendering the scene behind the intro screen immediately
         animate();
-        
+
         initWorld().then(() => {
             btnStart.textContent = "Begin";
             btnStart.disabled = false;
@@ -2001,4 +2860,5 @@
         });
     </script>
 </body>
+
 </html>
